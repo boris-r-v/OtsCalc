@@ -478,10 +478,8 @@ class OTS_DC_HeterogRail_call_kt internal constructor(// количество г
             num_track_mps[i][1] = mps[i][1].toInt()
             num_mesh_mps[i][0] = tracks[num_track_mps[i][0]]!!.num_mesh
             num_mesh_mps[i][1] = tracks[num_track_mps[i][1]]!!.num_mesh
-            index_mps[i][0] = meshes[num_mesh_mps[i][0]]!!
-                .find_near_index_over_mesh(mps[i][2])
-            index_mps[i][1] = meshes[num_mesh_mps[i][1]]!!
-                .find_near_index_over_mesh(mps[i][3])
+            index_mps[i][0] = meshes[num_mesh_mps[i][0]]!!.find_near_index_over_mesh(mps[i][2])
+            index_mps[i][1] = meshes[num_mesh_mps[i][1]]!!.find_near_index_over_mesh(mps[i][3])
         }
     }
 

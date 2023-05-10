@@ -1,5 +1,7 @@
 package ots_calc
 import org.kotlinmath.*
+import java.util.Vector
+
 typealias Real = Complex
 /**
  * Класс пути
@@ -31,8 +33,8 @@ class Track(
     var Rvn: Real = -1.R,
 )
 {
-    private var m3db: Array<Array<Real>>
-    private var vectorB: Array<Real>
+    internal var m3db: Array<Array<Real>>
+    internal var vectorB: Array<Real>
     private var U: Array<Real>
     private var I: Array<Real>
     private var Ignd: Array<Real>

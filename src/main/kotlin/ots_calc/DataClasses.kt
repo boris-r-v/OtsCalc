@@ -36,3 +36,7 @@ data class PV(  val point: Double,
                 val value: Real,
 )
 
+/**
+ * Иключение генерируемое когда ордината пути вышла за границу сетки
+ */
+class trackOutOfMeshException(message: String) : Exception(message)

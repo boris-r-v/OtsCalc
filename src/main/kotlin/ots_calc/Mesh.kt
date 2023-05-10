@@ -52,10 +52,15 @@ class Mesh(
      */
     fun find_near_index_over_mesh(X: Double): Int {
         /* если выходит за левую границу возвращает -1*/
-        if (X < this.X[0]) { return -1}
+        if (X < this.X[0]) {
+            throw trackOutOfMeshException("trackOutOfMeshException point $X out of left edge ${this.X[0]} of mesh")
+        }
         /* если выходит за правую границу возвращает -2 */
-        return if (X > this.X[this.X.size - 1]) { -2 }
-        else Math.round((X - this.X[0]) / dX).toInt()
+        if (X > this.X[this.X.size - 1]) {
+            throw trackOutOfMeshException("trackOutOfMeshException point $X out of right edge ${this.X[this.X.size - 1]} of mesh")
+        }
+
+        return Math.round((X - this.X[0]) / dX).toInt()
     }
     /**
     * находит два ближайших индекса элемента сетки по заданной координате  X
@@ -63,11 +68,12 @@ class Mesh(
     */
     fun find_2near_index_over_mesh(X: Double ): IntArray {
         if (X < this.X[0]) { // если выходит за левую границу
-            return intArrayOf(-1, -1)
+            throw trackOutOfMeshException("trackOutOfMeshException point $X out of left edge ${this.X[0]} of mesh")
         }
-        return if (X > this.X[this.X.size - 1]) { // если выходит за правую границу
-            intArrayOf(-2, -2)
-        } else intArrayOf(  Math.floor((X - this.X[0]) / dX).toInt(),
+        if (X > this.X[this.X.size - 1]) { // если выходит за правую границу
+            throw trackOutOfMeshException("trackOutOfMeshException point $X out of right edge ${this.X[this.X.size - 1]} of mesh")
+        }
+        return intArrayOf(  Math.floor((X - this.X[0]) / dX).toInt(),
                             Math.ceil((X - this.X[0]) / dX).toInt() )
     }
     /**
