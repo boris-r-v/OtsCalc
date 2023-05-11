@@ -35,9 +35,9 @@ class Track(
 {
     internal var m3db: Array<Array<Real>>
     internal var vectorB: Array<Real>
-    private var U: Array<Real>
-    private var I: Array<Real>
-    private var Ignd: Array<Real>
+    internal var U: Array<Real>
+    internal var I: Array<Real>
+    internal var Ignd: Array<Real>
 
     init {
         m3db = mesh.create_3diag_matrix_band(this)

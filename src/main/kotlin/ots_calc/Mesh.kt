@@ -18,7 +18,7 @@ class Mesh(
 )
 {
     val mesh_N: Int
-    private val X: DoubleArray
+    internal val X: DoubleArray
     init {
         mesh_N = ((X_end - X_beg) / dX).toInt() + 1
         println ("Mesh $mesh_N")
