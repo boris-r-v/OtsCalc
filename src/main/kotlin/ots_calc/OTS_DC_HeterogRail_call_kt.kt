@@ -343,7 +343,37 @@ class OTS_DC_HeterogRail_call_kt internal constructor(// количество г
             messeg_solver_error = ""
         }
     }
-
+    /** класс для ошибок при вычислениях, вводе данных, и сообщений о них
+     */
+    inner class Errors_and_messages // инициализатор по умолчанию - ошибок нет, расчёт не выполнен
+    {
+        var data_error = false
+        var solver_error = false
+        var calc_completed = false //data_error - ошибка в данных (к примеру, неправильная длина массива), solver_error - шибка решателя (к примеру, не достигнута сходимость, исчерпано число итераций), calc_completed  - признак что расчёт выполнен хотя бы раз
+        var messeg_data_error = ""
+        var messeg_solver_error = "Расчёт не выполнен" // текстовое сообщение об этих ошибках
+        // геттеры для всех свойств
+        fun get_data_error(): Boolean {
+            return data_error
+        }
+        fun get_solver_error(): Boolean {
+            return solver_error
+        }
+        fun get_messeg_data_error(): String {
+            return messeg_data_error
+        }
+        fun get_messeg_solver_error(): String {
+            return messeg_solver_error
+        }
+        fun reset_data_error() {
+            data_error = false
+            messeg_data_error = ""
+        }
+        fun reset_solver_error() {
+            solver_error = false
+            messeg_solver_error = ""
+        }
+    }
     //-----------------------------------------------------Внутренние процедуры базового класса приватные и публичные (за исключением сеттеров и геттеров)-------------------------------------------------------------------------
     //проверка исходных данных
     private fun verify_data(

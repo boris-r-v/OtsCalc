@@ -1,12 +1,9 @@
 package ots_calc
-import org.kotlinmath.Complex
+//import org.kotlinmath.Complex
 //import org.kotlinmath.R
 //import org.kotlinmath.complex
 import org.kotlinmath.*
 
-fun abs( data: Complex ): Complex {
-    return sqrt( data.re*data.re + data.im*data.im )
-}
 /**
  * Класс производящий расчет токов и напряжений
  *
@@ -20,79 +17,6 @@ class Calc(
     private val mpss: Array<Mps>,
 )
 {
-    /**
-     * класс для ошибок при вычислениях, вводе данных, и сообщений о них
-     */
-    inner class verify_data // инициализатор по умолчанию - ошибок нет, расчёт не выполнен
-    {
-        var data_error = false
-        var solver_error = false
-        var calc_completed = false //data_error - ошибка в данных (к примеру, неправильная длина массива), solver_error - шибка решателя (к примеру, не достигнута сходимость, исчерпано число итераций), calc_completed  - признак что расчёт выполнен хотя бы раз
-        var messeg_data_error = ""
-        var messeg_solver_error = "Расчёт не выполнен" // текстовое сообщение об этих ошибках
-        // геттеры для всех свойств
-        fun get_data_error(): Boolean {
-            return data_error
-        }
-        fun get_solver_error(): Boolean {
-            return solver_error
-        }
-        fun get_messeg_data_error(): String {
-            return messeg_data_error
-        }
-        fun get_messeg_solver_error(): String {
-            return messeg_solver_error
-        }
-        fun reset_data_error() {
-            data_error = false
-            messeg_data_error = ""
-        }
-        fun reset_solver_error() {
-            solver_error = false
-            messeg_solver_error = ""
-        }
-    }inner class Computing_settings // инициализатор по умолчанию
-    {
-        var convergence_U = 0.01 // допустимая невязка величины напряжения усреднённая по всем точкам граничного условия, в которых происходит итерационный поиск величины тока втекающего в эти точки.
-        var max_number_iterat = 1000 // максимальное число итераций при расчёте величины тока, втекающего в граничные точки, по методу Ньютона в цикле.
-        var initial_damping_factor = 0.7 // начальное коэффициент демпфирования в методе Ньютона при расчёте величины тока, втекающего в граничные точки.
-        lateinit var current_state_solver: DoubleArray // текущее состояние решателя содержит массив из трёх чисел полученных в конце последнего расчёта: 1 - количество итераций, 2- средняя невязка по напряжению, 3 - коэффициент демпфирования
-        //возвращает параметры решаттеля в виде массива
-        fun get_current_state_solver(): DoubleArray {
-            return current_state_solver
-        }
-    }
-    /** класс для ошибок при вычислениях, вводе данных, и сообщений о них
-     */
-    inner class Errors_and_messages // инициализатор по умолчанию - ошибок нет, расчёт не выполнен
-    {
-        var data_error = false
-        var solver_error = false
-        var calc_completed = false //data_error - ошибка в данных (к примеру, неправильная длина массива), solver_error - шибка решателя (к примеру, не достигнута сходимость, исчерпано число итераций), calc_completed  - признак что расчёт выполнен хотя бы раз
-        var messeg_data_error = ""
-        var messeg_solver_error = "Расчёт не выполнен" // текстовое сообщение об этих ошибках
-        // геттеры для всех свойств
-        fun get_data_error(): Boolean {
-            return data_error
-        }
-        fun get_solver_error(): Boolean {
-            return solver_error
-        }
-        fun get_messeg_data_error(): String {
-            return messeg_data_error
-        }
-        fun get_messeg_solver_error(): String {
-            return messeg_solver_error
-        }
-        fun reset_data_error() {
-            data_error = false
-            messeg_data_error = ""
-        }
-        fun reset_solver_error() {
-            solver_error = false
-            messeg_solver_error = ""
-        }
-    }
 
     private lateinit var I_mps: Array<Real> // массив токов междупутных соединителей МПС и токов отходящих ветвей в местах соединения с главными путями
     private lateinit var num_track_mps: Array<IntArray> // двумерный номеров путей для МПС (в каждой строке начальная и конечная точка)
@@ -322,18 +246,13 @@ class Calc(
             err_and_mes.messeg_solver_error = "Расчёт невозможен. Ошибка исходных данных"
             return false
         }
-        val N_mps = mpss.size
-        //количество МПС
-        val U_find = Array<Real>(N_mps){0.R}
-        // массивы напряжений на МПС, которые определяются всеми токами (известными и неизвестными)
+        val N_mps = mpss.size //количество МПС
+        val U_find = Array<Real>(N_mps){0.R} // массивы напряжений на МПС, которые определяются всеми токами (известными и неизвестными)
         val resid_U_mps = Array<Real>(N_mps){0.R}
-        var mean_resid: Real
-        // средняя невязка
-        val limit_mean_resid = complex ( computing_settings.convergence_U, 0 )
-        // задаём предельную невязку по достижении которой сходимость из класса computing_settings
-        var damping_factor = complex ( computing_settings.initial_damping_factor, 0 )
-        //задаём коэффициент демпфирования текущее значение, на него умножается вычисленная по невязке напряжение корректирровка тока
-        var mean_resid_pred = 0.R// значение невязки по напряжению на предыдущем шаге итераций
+        var mean_resid: Double             // средняя невязка
+        val limit_mean_resid = 0.0      // задаём предельную невязку по достижении которой сходимость из класса computing_settings
+        var damping_factor = 0.0        //задаём коэффициент демпфирования текущее значение, на него умножается вычисленная по невязке напряжение корректирровка тока
+        var mean_resid_pred: Double        /* значение невязки по напряжению на предыдущем шаге итераций */
         var iter = 0
         val iter_max = computing_settings.max_number_iterat // счётчик итераций и максимальное число итераций
         var counter_not_exceeded: Boolean
@@ -343,10 +262,10 @@ class Calc(
         //нахождение токов в цикле итераций по невязке напряжения на МПС
         counter_not_exceeded = true
         convergence_not_achieved = true
-        mean_resid = 100.0.R //начальное значение средняя невязка до первой итерации
+        mean_resid = 100.0 //начальное значение средняя невязка до первой итерации
         while (counter_not_exceeded && convergence_not_achieved) {
             mean_resid_pred = mean_resid //предыдущая невязка обновление
-            mean_resid = 0.0.R //текущая невязка скидывается
+            mean_resid = 0.0 //текущая невязка скидывается
             for (i in 0 until N_mps) {
                 U_find[i] = U_const[i] //начинаем с постоянного напряжения (от заданных источников тока ФОТ ЭПС)
                 for (j in 0 until N_mps) {
@@ -354,26 +273,20 @@ class Calc(
                 }
                 resid_U_mps[i] = U_find[i] - init_I_poisk[i] * mpss[i].resValue//невязка напряжения на МПС, уже изветны напряжения и Р1 и Р2
                 init_I_poisk[i] += damping_factor * resid_U_mps[i] / (-0.5.R * a_x_find[i][i] + mpss[i].resValue) //корректируем текущий поисковый ток пропорционально невязке по напряжению в этом элементе с учётом коэф. демпфирования
-                mean_resid += abs(resid_U_mps[i]) //обновляем невязку
+                mean_resid += resid_U_mps[i].mod //обновляем невязку
             }
             mean_resid = mean_resid / N_mps //невязка именно средняя
             //если после первой итерации возрастает средняя невязка mean_resid по сравнению с ней же на предыдущей итерации mean_resid_pred, то коэффициент демпфирования в методе Ньютона уменьшаем в 0.7 раз
             if (iter > 0) {
-                if (mean_resid.re > mean_resid_pred.re  ) { //FIX ME - тут как то по умному нужно считать невязку в комплексной плоскости
+                if (mean_resid > mean_resid_pred  ) { //FIX ME - тут как то по умному нужно считать невязку в комплексной плоскости
                     damping_factor = damping_factor * 0.7
                 }
             }
             iter += 1 //обновляем счётчик итераций
-            counter_not_exceeded = iter < iter_max // обновляем булевые переменные выхода из цикла итераций
-            convergence_not_achieved = mean_resid.re > limit_mean_resid.re  //FIX ME - опять сравнение двух комплексов заменил на сравнение их вещественных частей
-            //debugLog("iter="+iter+" ,mean_resid="+mean_resid+", damping_factor="+damping_factor);
+            counter_not_exceeded = iter < iter_max  // обновляем булевые переменные выхода из цикла итераций
+            convergence_not_achieved = mean_resid > limit_mean_resid
         }
-        //debugLog("iter="+iter);
-        computing_settings.current_state_solver = doubleArrayOf(
-            (iter - 1).toDouble(),
-            mean_resid.re,
-            damping_factor.re //FIX ME тут скорее всего не то что с комплексами
-        ) // записываем текущее состояние решателя
+        computing_settings.current_state_solver = doubleArrayOf( (iter - 1).toDouble(), mean_resid, damping_factor ) // записываем текущее состояние решателя
         I_mps = init_I_poisk // заносим токи в МПС в массивы родительского класса
         eval_node_from_all_I()
         zeros_vector_b()
@@ -389,8 +302,7 @@ class Calc(
     private fun eval_node_from_all_I() {
         var g_rh: Real
         var g_lf: Real //условная проводимость слева и справа от узла сетки на схеме дискретизации рельсов
-        var num_mesh: Int
-        // номер сетки для начального и конечного пути МПС
+        // FIX ME it never usedvar num_mesh: Int  // номер сетки для начального и конечного пути МПС
         var N: Int // количество узлов сетки
 
         // добавляем в вектор правой часть токи МПС (токи ФОТ и ЭПС добавлены процедурой eval_U_const() )
