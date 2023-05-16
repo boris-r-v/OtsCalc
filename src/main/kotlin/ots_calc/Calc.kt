@@ -3,6 +3,7 @@ package ots_calc
 //import org.kotlinmath.R
 //import org.kotlinmath.complex
 import org.kotlinmath.*
+import java.util.*
 
 /**
  * Класс производящий расчет токов и напряжений
@@ -30,7 +31,6 @@ class Calc(
         err_and_mes = Errors_and_messages()
         init_find_index_mps()
         init_eval_a_x_find()
-        eval_U_const()
     }
     /**
      * Фунция проводит набор проверок корректности исходных данных
@@ -172,7 +172,8 @@ class Calc(
             tr.vectorB = addValues_vector_b_2node(tr.mesh, tr.vectorB, tr.eps, 1.0.R ) // в точках ЭПС ток  в двух ближайших узлах
 //            println("vecB2: ${Arrays.deepToString(tr.vectorB)} ")
             tr.U = solve_3diag_band(tr.m3db, tr.vectorB) //потенциал в рельсах в узлах сетки
-//            println("U2: ${Arrays.deepToString(tr.vectorB)} ")
+            //println("tr.name: ${Arrays.deepToString(tr.vectorB)} ")
+            println("tr.name.u -> ${Arrays.toString(tr.U) } ")
         }
 /*      // по параметрам МПС (номерам путей и координатам точек начала и конца) запишем в U1_const и U2_const  в узлах с МПС  напряжения в рельсах от постоянных источников
         U_const = Array<Real>(mpss.size){0.R}
@@ -182,7 +183,7 @@ class Calc(
         println("U_const: ${Arrays.deepToString(U_const)} ")
 */
         U_const = Array<Real>(mpss.size){ j -> tracks[num_track_mps[j][0]].U[index_mps[j][0]] - tracks[num_track_mps[j][1]].U[index_mps[j][1]]}
-//        println("U_const: ${Arrays.deepToString(U_const)} ")
+        println("U_const: ${Arrays.deepToString(U_const)} ")
     }
 
     /**
@@ -250,15 +251,14 @@ class Calc(
         val U_find = Array<Real>(N_mps){0.R} // массивы напряжений на МПС, которые определяются всеми токами (известными и неизвестными)
         val resid_U_mps = Array<Real>(N_mps){0.R}
         var mean_resid: Double             // средняя невязка
-        val limit_mean_resid = 0.0      // задаём предельную невязку по достижении которой сходимость из класса computing_settings
-        var damping_factor = 0.0        //задаём коэффициент демпфирования текущее значение, на него умножается вычисленная по невязке напряжение корректирровка тока
+        val limit_mean_resid = computing_settings.convergence_U     // задаём предельную невязку по достижении которой сходимость из класса computing_settings
+        var damping_factor = computing_settings.initial_damping_factor        //задаём коэффициент демпфирования текущее значение, на него умножается вычисленная по невязке напряжение корректирровка тока
         var mean_resid_pred: Double        /* значение невязки по напряжению на предыдущем шаге итераций */
         var iter = 0
         val iter_max = computing_settings.max_number_iterat // счётчик итераций и максимальное число итераций
         var counter_not_exceeded: Boolean
         var convergence_not_achieved: Boolean // непревышение итераций, недостижение сходимости - булевые переменные которые определяют выход из цикла итераций
         eval_U_const() // рассчитываем напряжения на МПС от заданных токов ФОТ и ЭПС
-
         //нахождение токов в цикле итераций по невязке напряжения на МПС
         counter_not_exceeded = true
         convergence_not_achieved = true
@@ -272,7 +272,7 @@ class Calc(
                     U_find[i] += init_I_poisk[j] * a_x_find[i][j] //добавляем напряжение от МПС
                 }
                 resid_U_mps[i] = U_find[i] - init_I_poisk[i] * mpss[i].resValue//невязка напряжения на МПС, уже изветны напряжения и Р1 и Р2
-                init_I_poisk[i] += damping_factor * resid_U_mps[i] / (-0.5.R * a_x_find[i][i] + mpss[i].resValue) //корректируем текущий поисковый ток пропорционально невязке по напряжению в этом элементе с учётом коэф. демпфирования
+                init_I_poisk[i] += damping_factor * resid_U_mps[i] / (-0.5 * a_x_find[i][i] + mpss[i].resValue) //корректируем текущий поисковый ток пропорционально невязке по напряжению в этом элементе с учётом коэф. демпфирования
                 mean_resid += resid_U_mps[i].mod //обновляем невязку
             }
             mean_resid = mean_resid / N_mps //невязка именно средняя
@@ -285,8 +285,10 @@ class Calc(
             iter += 1 //обновляем счётчик итераций
             counter_not_exceeded = iter < iter_max  // обновляем булевые переменные выхода из цикла итераций
             convergence_not_achieved = mean_resid > limit_mean_resid
+            //println("iter=$iter mean_resid=$mean_resid damping_factor=$damping_factor")
         }
         computing_settings.current_state_solver = doubleArrayOf( (iter - 1).toDouble(), mean_resid, damping_factor ) // записываем текущее состояние решателя
+        println("I_mps: ${Arrays.toString(init_I_poisk)} ")
         I_mps = init_I_poisk // заносим токи в МПС в массивы родительского класса
         eval_node_from_all_I()
         zeros_vector_b()
@@ -320,21 +322,21 @@ class Calc(
         for (tr in tracks) {
             N = tr.mesh.mesh_N // число узлов сетки для текущего пути
             //ток в рельсах и земле для первого узла
-            g_lf = 1.R / tr.Rv0 //проводимость слева от первого узла через волновое сопротивление в начале
-            g_rh = -1.R * tr.m3db[0][0] //проводимость справа от первого узла через нижнюю диагональ первый элемент
-            tr.I[0] = 0.5.R * ((0.R - tr.U[0]) * g_lf + (tr.U[0] - tr.U[1]) * g_rh) //ток первого узла как полусумма токов слева и справа от него
+            g_lf = 1 / tr.Rv0 //проводимость слева от первого узла через волновое сопротивление в начале
+            g_rh = -1 * tr.m3db[0][0] //проводимость справа от первого узла через нижнюю диагональ первый элемент
+            tr.I[0] = 0.5 * ((0 - tr.U[0]) * g_lf + (tr.U[0] - tr.U[1]) * g_rh) //ток первого узла как полусумма токов слева и справа от него
             tr.Ignd[0] = tr.U[0] * (tr.m3db[1][0] + tr.m3db[0][0]) //ток в земле для первого узла
             //ток в рельсах и земле для остальных узлов со второго до предпоследнего
             for (i in 1 until N - 1) {
-                g_lf = -1.R * tr.m3db[0][i - 1] //проводимость слева от узла через нижнюю диагональ
-                g_rh = -1.R * tr.m3db[2][i + 1] //проводимость справа от узла через верхнюю диагональ
-                tr.I[i] = 0.5.R * ((tr.U[i - 1] - tr.U[i]) * g_lf + (tr.U[i] - tr.U[i + 1]) * g_rh) //ток  узла как полусумма токов слева и справа от него
+                g_lf = -1 * tr.m3db[0][i - 1] //проводимость слева от узла через нижнюю диагональ
+                g_rh = -1 * tr.m3db[2][i + 1] //проводимость справа от узла через верхнюю диагональ
+                tr.I[i] = 0.5 * ((tr.U[i - 1] - tr.U[i]) * g_lf + (tr.U[i] - tr.U[i + 1]) * g_rh) //ток  узла как полусумма токов слева и справа от него
                 tr.Ignd[i] = tr.Ignd[i - 1] + tr.U[i] * (tr.m3db[1][i] + tr.m3db[0][i - 1] + tr.m3db[2][i + 1]) //ток в земле для узла
             }
             //ток в рельсах для последнего узла
-            g_lf = -1.R * tr.m3db[2][N - 1] //проводимость слева от последнего узла через верхнюю диагональ последний элемент
-            g_rh = 1.R / tr.Rvn       //проводимость справа от последнего узла через волновое сопротивление в конце
-            tr.I[N - 1] = 0.5.R * ((tr.U[N - 2] - tr.U[N - 1]) * g_lf + (tr.U[N - 1] - 0) * g_rh) // ток в рельсе для псоледнего узла
+            g_lf = -1 * tr.m3db[2][N - 1] //проводимость слева от последнего узла через верхнюю диагональ последний элемент
+            g_rh = 1 / tr.Rvn       //проводимость справа от последнего узла через волновое сопротивление в конце
+            tr.I[N - 1] = 0.5 * ((tr.U[N - 2] - tr.U[N - 1]) * g_lf + (tr.U[N - 1] - 0) * g_rh) // ток в рельсе для псоледнего узла
             tr.Ignd[N - 1] = tr.Ignd[N - 2] + tr.U[N - 1] * (tr.m3db[1][N - 1] + tr.m3db[2][N - 1] - 1 / tr.Rvn) //ток в земле для последнего узла
         }
     }

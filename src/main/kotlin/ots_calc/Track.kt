@@ -22,6 +22,7 @@ typealias Real = Complex
  * @property Ignd - значения токов стекающих в хемлю в узлах метки
  */
 class Track(
+    val name: String,
     val r: Array<PV>,
     val rp: Array<PV>,
     val fot: Array<PV>,

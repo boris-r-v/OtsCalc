@@ -1,5 +1,7 @@
 package ots_calc
 
+import java.util.*
+
 /** Класс для расчёта мгновенной схемы ОТС
  * на постоянном токе НЕ однородный рельс
  */
@@ -556,6 +558,7 @@ class OTS_DC_HeterogRail_call_kt internal constructor(// количество г
                 1.0
             ) // в точках ЭПС ток  в двух ближайших узлах
             tracks[i]!!.u = solve_3diag_band(tracks[i]!!.m3db, tracks[i]!!.vector_b) //потенциал в рельсах в узлах сетки
+            println("tracks[$i]!!.u -> ${Arrays.toString( tracks[i]!!.u) } ")
         }
 
         // по параметрам МПС (номерам путей и координатам точек начала и конца) запишем в U1_const и U2_const  в узлах с МПС  напряжения в рельсах от постоянных источников
@@ -563,6 +566,7 @@ class OTS_DC_HeterogRail_call_kt internal constructor(// количество г
             U_const[j] =
                 tracks[num_track_mps[j][0]]!!.u[index_mps[j][0]] - tracks[num_track_mps[j][1]]!!.u[index_mps[j][1]]
         }
+        println("U_const: ${Arrays.toString(U_const)} ")
     }
 
     /* Расчет коэффициентов влияния в МПС от их самих
@@ -705,6 +709,7 @@ class OTS_DC_HeterogRail_call_kt internal constructor(// количество г
      * По сути рассчитывается алгебраическая система уравнений методом Ньютона в цикле итераций
      */
     private fun calc_I_poisk(init_I_poisk: DoubleArray): Boolean { // возвращает истина если расчёт сошёлся, ложь в обратном случае
+        //println("I_mps: ${Arrays.toString(init_I_poisk)} ")
         err_and_mes.reset_solver_error() //обнулим ошибки решателя
         err_and_mes.calc_completed = true
         verify_data(
@@ -712,6 +717,7 @@ class OTS_DC_HeterogRail_call_kt internal constructor(// количество г
             false,
             true
         ) // проверка исходных данных только координ ЭПС, т.к. остальное проверено при инициализации
+
         if (err_and_mes.data_error) { //проверка если данные корректны
             err_and_mes.solver_error = true
             err_and_mes.messeg_solver_error = "Расчёт невозможен. Ошибка исходных данных"
@@ -734,7 +740,8 @@ class OTS_DC_HeterogRail_call_kt internal constructor(// количество г
         var counter_not_exceeded: Boolean
         var convergence_not_achieved: Boolean // непревышение итераций, недостижение сходимости - булевые переменные которые определяют выход из цикла итераций
         eval_U_const() // рассчитываем напряжения на МПС от заданных токов ФОТ и ЭПС
-
+        //println("I_2mps: ${Arrays.toString(init_I_poisk)} ")
+        //println("a_x_find[i][j]: ${Arrays.deepToString(a_x_find)}")
         //нахождение токов в цикле итераций по невязке напряжения на МПС
         counter_not_exceeded = true
         convergence_not_achieved = true
@@ -744,12 +751,14 @@ class OTS_DC_HeterogRail_call_kt internal constructor(// количество г
             mean_resid = 0.0 //текущая невязка скидывается
             for (i in 0 until N_mps) {
                 U_find[i] = U_const[i] //начинаем с постоянного напряжения (от заданных источников тока ФОТ ЭПС)
+
                 for (j in 0 until N_mps) {
                     U_find[i] += init_I_poisk[j] * a_x_find[i][j] //добавляем напряжение от МПС
                 }
-                resid_U_mps[i] =
-                    U_find[i] - init_I_poisk[i] * mps[i][4] //невязка напряжения на МПС, уже изветны напряжения и Р1 и Р2
+
+                resid_U_mps[i] = U_find[i] - init_I_poisk[i] * mps[i][4] //невязка напряжения на МПС, уже изветны напряжения и Р1 и Р2
                 init_I_poisk[i] += damping_factor * resid_U_mps[i] / (-0.5 * a_x_find[i][i] + mps[i][4]) //корректируем текущий поисковый ток пропорционально невязке по напряжению в этом элементе с учётом коэф. демпфирования
+
                 mean_resid += Math.abs(resid_U_mps[i]) //обновляем невязку
             }
             mean_resid = mean_resid / N_mps //невязка именно средняя
@@ -762,7 +771,7 @@ class OTS_DC_HeterogRail_call_kt internal constructor(// количество г
             iter += 1 //обновляем счётчик итераций
             counter_not_exceeded = iter < iter_max // обновляем булевые переменные выхода из цикла итераций
             convergence_not_achieved = mean_resid > limit_mean_resid
-            //debugLog("iter="+iter+" ,mean_resid="+mean_resid+", damping_factor="+damping_factor);
+            //println("iter=$iter mean_resid=$mean_resid damping_factor=$damping_factor")
         }
         //debugLog("iter="+iter);
         computing_settings.current_state_solver = doubleArrayOf(
@@ -770,6 +779,7 @@ class OTS_DC_HeterogRail_call_kt internal constructor(// количество г
             mean_resid,
             damping_factor
         ) // записываем текущее состояние решателя
+        println("I_mps: ${Arrays.toString(init_I_poisk)} ")
         I_mps = init_I_poisk // заносим токи в МПС в массивы родительского класса
         eval_node_from_all_I()
         zeros_vector_b()

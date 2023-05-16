@@ -21,7 +21,6 @@ class Mesh(
     internal val X: DoubleArray
     init {
         mesh_N = ((X_end - X_beg) / dX).toInt() + 1
-        println ("Mesh $mesh_N")
         X = DoubleArray(mesh_N)
         X[0] = X_beg
         for (i in 1 until mesh_N)
