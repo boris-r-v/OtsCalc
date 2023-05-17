@@ -40,13 +40,9 @@ fun main(args: Array<String>) {
     val track0 = Track("0", r13, rp13, fot0, eps0, emp, emp, mesh0)
     val track1 = Track("1", r13, rp13, emp, eps1, emp, emp,  mesh0)
     val track2 = Track("2", r13, rp13, emp, eps2, emp, emp,  mesh0)
-    val track3 = Track("3", r4,  rp4,  emp, emp,  emp, emp,  mesh1)
-    val track4 = Track("4", r56, rp56, fot4, emp, emp, emp,  mesh2)
-    val track5 = Track("5", r56, rp56, emp, eps5, emp, emp,  mesh2)
-    track3.Rv0 =1e6.R
-    track3.Rvn =1e6.R
-    track4.Rv0 =1e6.R
-    track5.Rv0 =1e6.R
+    val track3 = Track("3", r4,  rp4,  emp, emp,  emp, emp,  mesh1, 1e6.R, 1e6.R )
+    val track4 = Track("4", r56, rp56, fot4, emp, emp, emp,  mesh2, 1e6.R)
+    val track5 = Track("5", r56, rp56, emp, eps5, emp, emp,  mesh2, 1e6.R)
 
 
     val mps = arrayOf( Mps(0, 1, 140.5, 140.5, 0.9e-3.R), Mps(1, 2, 140.5, 140.5, 0.9e-3.R),
@@ -58,7 +54,7 @@ fun main(args: Array<String>) {
         Mps(1, 2, 177.1, 177.1, 1.8e-3.R ),
 
         Mps(4, 5, 10.2, 10.2, 1.0e-3.R ), /*МПС по отход2*/
-        Mps(0, 3, 152.0, 0.0, 1.0e-5.R ), /*соединение путь гл1 (путь 0 в классе) и однопутн отход тупик (путь 3 в классе)*/
+        Mps(0, 3, 152.5, 0.0, 1.0e-5.R ), /*соединение путь гл1 (путь 0 в классе) и однопутн отход тупик (путь 3 в классе)*/
         Mps(1, 4, 170.5, 0.0, 1.0e-5.R ), /*соединение путь гл2 (путь 1 в классе) и  отход2 путь1 (путь 4 в классе) */
         Mps(2, 5, 170.5, 0.0, 1.0e-5.R ), /*соединение путь гл3 (путь 2 в классе) и  отход2 путь2 (путь 5 в классе) */
         )

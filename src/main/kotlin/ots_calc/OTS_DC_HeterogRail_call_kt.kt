@@ -558,7 +558,7 @@ class OTS_DC_HeterogRail_call_kt internal constructor(// количество г
                 1.0
             ) // в точках ЭПС ток  в двух ближайших узлах
             tracks[i]!!.u = solve_3diag_band(tracks[i]!!.m3db, tracks[i]!!.vector_b) //потенциал в рельсах в узлах сетки
-            println("tracks[$i]!!.u -> ${Arrays.toString( tracks[i]!!.u) } ")
+            println("tracks[$i]!!.u, ${Arrays.toString( tracks[i]!!.u) } ")
         }
 
         // по параметрам МПС (номерам путей и координатам точек начала и конца) запишем в U1_const и U2_const  в узлах с МПС  напряжения в рельсах от постоянных источников
@@ -566,7 +566,7 @@ class OTS_DC_HeterogRail_call_kt internal constructor(// количество г
             U_const[j] =
                 tracks[num_track_mps[j][0]]!!.u[index_mps[j][0]] - tracks[num_track_mps[j][1]]!!.u[index_mps[j][1]]
         }
-        println("U_const: ${Arrays.toString(U_const)} ")
+        println("U_const:, ${Arrays.toString(U_const)} ")
     }
 
     /* Расчет коэффициентов влияния в МПС от их самих
@@ -779,7 +779,7 @@ class OTS_DC_HeterogRail_call_kt internal constructor(// количество г
             mean_resid,
             damping_factor
         ) // записываем текущее состояние решателя
-        println("I_mps: ${Arrays.toString(init_I_poisk)} ")
+        println("I_mps:, ${Arrays.toString(init_I_poisk)} ")
         I_mps = init_I_poisk // заносим токи в МПС в массивы родительского класса
         eval_node_from_all_I()
         zeros_vector_b()

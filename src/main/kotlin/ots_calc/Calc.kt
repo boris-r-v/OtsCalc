@@ -36,7 +36,7 @@ class Calc(
      * Фунция проводит набор проверок корректности исходных данных
      */
     fun check(){
-        println("CHECKING: ${a_x_find[0][0].toString()} ")
+        println("Refactoring")
     }
 
     /**
@@ -173,7 +173,7 @@ class Calc(
 //            println("vecB2: ${Arrays.deepToString(tr.vectorB)} ")
             tr.U = solve_3diag_band(tr.m3db, tr.vectorB) //потенциал в рельсах в узлах сетки
             //println("tr.name: ${Arrays.deepToString(tr.vectorB)} ")
-            println("tr.name.u -> ${Arrays.toString(tr.U) } ")
+            println("tr.name.u, ${Arrays.toString(tr.U) } ")
         }
 /*      // по параметрам МПС (номерам путей и координатам точек начала и конца) запишем в U1_const и U2_const  в узлах с МПС  напряжения в рельсах от постоянных источников
         U_const = Array<Real>(mpss.size){0.R}
@@ -183,7 +183,7 @@ class Calc(
         println("U_const: ${Arrays.deepToString(U_const)} ")
 */
         U_const = Array<Real>(mpss.size){ j -> tracks[num_track_mps[j][0]].U[index_mps[j][0]] - tracks[num_track_mps[j][1]].U[index_mps[j][1]]}
-        println("U_const: ${Arrays.deepToString(U_const)} ")
+        println("U_const:, ${Arrays.deepToString(U_const)} ")
     }
 
     /**
@@ -288,7 +288,7 @@ class Calc(
             //println("iter=$iter mean_resid=$mean_resid damping_factor=$damping_factor")
         }
         computing_settings.current_state_solver = doubleArrayOf( (iter - 1).toDouble(), mean_resid, damping_factor ) // записываем текущее состояние решателя
-        println("I_mps: ${Arrays.toString(init_I_poisk)} ")
+        println("I_mps:, ${Arrays.toString(init_I_poisk)} ")
         I_mps = init_I_poisk // заносим токи в МПС в массивы родительского класса
         eval_node_from_all_I()
         zeros_vector_b()
