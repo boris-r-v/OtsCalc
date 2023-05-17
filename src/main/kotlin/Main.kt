@@ -40,10 +40,13 @@ fun main(args: Array<String>) {
     val track0 = Track("0", r13, rp13, fot0, eps0, emp, emp, mesh0)
     val track1 = Track("1", r13, rp13, emp, eps1, emp, emp,  mesh0)
     val track2 = Track("2", r13, rp13, emp, eps2, emp, emp,  mesh0)
-    val track3 = Track("3", r4,  rp4,  emp, emp,  emp, emp,  mesh1, 1e6.R, 1e6.R )
-    val track4 = Track("4", r56, rp56, fot4, emp, emp, emp,  mesh2, 1e6.R)
-    val track5 = Track("5", r56, rp56, emp, eps5, emp, emp,  mesh2, 1e6.R)
-
+    val track3 = Track("3", r4,  rp4,  emp, emp,  emp, emp,  mesh1)
+    val track4 = Track("4", r56, rp56, fot4, emp, emp, emp,  mesh2)
+    val track5 = Track("5", r56, rp56, emp, eps5, emp, emp,  mesh2)
+    track3.Rv0 = 1e6.R
+    track3.Rvn = 1e6.R
+    track4.Rv0 = 1e6.R
+    track5.Rv0 = 1e6.R
 
     val mps = arrayOf( Mps(0, 1, 140.5, 140.5, 0.9e-3.R), Mps(1, 2, 140.5, 140.5, 0.9e-3.R),
         Mps(0, 1, 151.5, 151.5, 1.5e-3.R ), /*МПС по главным путям 1-3*/
@@ -68,29 +71,18 @@ fun main(args: Array<String>) {
     println("track0.U: ${Arrays.deepToString(track0.U)} ")
     println("track1.U: ${Arrays.deepToString(track1.U)} ")
     println("track2.U: ${Arrays.deepToString(track2.U)} ")
+    println("track3.U: ${Arrays.deepToString(track3.U)} ")
+    println("track4.U: ${Arrays.deepToString(track4.U)} ")
+    println("track5.U: ${Arrays.deepToString(track5.U)} ")
+
     println("track0.I: ${Arrays.deepToString(track0.I)} ")
     println("track1.I: ${Arrays.deepToString(track1.I)} ")
     println("track2.I: ${Arrays.deepToString(track2.I)} ")
-    println(" ${track1.U.size} ${track2.U.size} ${track1.I.size} ${track2.I.size} " )
-*/
-/*
-
-    println(" ${track1.U.size} ${track2.U.size} " )
-    for ( i in 0..track1.U.size-1){
-        println("${track1.U[i]} ${track2.U[i]} " )
-    }
-*/
-/*
-    val I_poisk = DoubleArray(10)
-    for ( i in (I_poisk))
-        println("I_poisk: ${i} ")
-
-    val k = Array<Complex>(10){0.R}
-    for ( i in k)
-        println("k: ${i.toString()} ")
-    val x = arrayOf<Complex>()
-    for ( i in x)
-        println("x: ${i.toString()} ")
+    println("track3.I: ${Arrays.deepToString(track3.I)} ")
+    println("track4.I: ${Arrays.deepToString(track4.I)} ")
+    println("track5.I: ${Arrays.deepToString(track5.I)} ")
 
 */
+    println("P: ${calc.get_P_ots()}")
+
 }

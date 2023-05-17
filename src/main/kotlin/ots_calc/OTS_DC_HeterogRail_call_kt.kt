@@ -844,11 +844,7 @@ class OTS_DC_HeterogRail_call_kt internal constructor(// количество г
 
     //------------------------------------------------------Геттеры и сеттеры головного класса + внутренние процедуры для них-------------------------------------------------------------------------
     // возвращает параметр распределенный по узлам сетки в привязке к координатам
-    private fun return_X_param_rail(
-        num_mesh: Int,
-        X_rail: DoubleArray,
-        arr_param_node: DoubleArray
-    ): DoubleArray? { //num_mesh - номер сетки, X_rail[] - массив координат, км; arr_param_node - массив параметра рсапредленный по узлам сетки
+    private fun return_X_param_rail( num_mesh: Int, X_rail: DoubleArray, arr_param_node: DoubleArray ): DoubleArray? { //num_mesh - номер сетки, X_rail[] - массив координат, км; arr_param_node - массив параметра рсапредленный по узлам сетки
         val N = X_rail.size
         var indexes: IntArray
         val out = DoubleArray(N)
@@ -907,28 +903,19 @@ class OTS_DC_HeterogRail_call_kt internal constructor(// количество г
     }
 
     //геттер возвращает напряжение рельс-земля в виде массива по заданным координатам точек
-    fun get_U_rail(
-        num_track: Int,
-        X_rail: DoubleArray
-    ): DoubleArray? { //  num_track - номер пути; X_rail - массив координат км;
+    fun get_U_rail( num_track: Int, X_rail: DoubleArray ): DoubleArray? { //  num_track - номер пути; X_rail - массив координат км;
         val num_mesh = tracks[num_track]!!.num_mesh // номер сетки для пути
         return return_X_param_rail(num_mesh, X_rail, get_U_rail(num_track))
     }
 
     //геттер возвращает ток в рельсах в виде массива по заданным координатам точек
-    fun get_I_rail(
-        num_track: Int,
-        X_rail: DoubleArray
-    ): DoubleArray? { // num_track - номер пути; X_rail - массив координат км;
+    fun get_I_rail( num_track: Int, X_rail: DoubleArray ): DoubleArray? { // num_track - номер пути; X_rail - массив координат км;
         val num_mesh = tracks[num_track]!!.num_mesh // номер сетки для пути
         return return_X_param_rail(num_mesh, X_rail, get_I_rail(num_track))
     }
 
     //геттер возвращает ток в земле в виде массива для заданных путей по заданным координатам точек
-    fun get_I_grnd(
-        nums_tracks: IntArray,
-        X_rail: DoubleArray
-    ): DoubleArray? { // nums_tracks - массив содержащий номера путей для которых суммировать ток в земле; X_rail - массив координат км
+    fun get_I_grnd( nums_tracks: IntArray, X_rail: DoubleArray ): DoubleArray? { // nums_tracks - массив содержащий номера путей для которых суммировать ток в земле; X_rail - массив координат км
         val num_mesh = tracks[nums_tracks[0]]!!.num_mesh // номер сетки для первого пути в массиве
         return return_X_param_rail(num_mesh, X_rail, get_I_grnd(nums_tracks))
     }

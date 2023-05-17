@@ -41,7 +41,7 @@ class Track(
     internal var Ignd: Array<Real>
 
     init {
-        m3db = mesh.create_3diag_matrix_band(this)
+        m3db = arrayOf<Array<Real>>()
         vectorB = Array(mesh.size()){0.R}
         U = Array(mesh.size()){0.R}
         I = Array(mesh.size()){0.R}

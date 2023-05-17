@@ -3,6 +3,7 @@ package ots_calc
 //import org.kotlinmath.R
 //import org.kotlinmath.complex
 import org.kotlinmath.*
+import java.lang.Exception
 import java.util.*
 
 /**
@@ -24,11 +25,11 @@ class Calc(
     private lateinit var index_mps: Array<IntArray> //двумерный массивы  индексов узлов по сетке МПС (в каждой строке начальная и конечная точка)
     private lateinit var a_x_find: Array<Array<Real>> // матрица коэффициентов влияния тока во всех МПС на напряжения во всех МПС Ом. По главной диагонали сами на себя.
     private lateinit var U_const: Array<Real> //  массивы разности напряжений от заданных токов в МПС от начальнйо до конечной точки подключения
-    var computing_settings: Computing_settings
-    var err_and_mes: Errors_and_messages
+    val computing_settings: Computing_settings = Computing_settings()
+    val err_and_mes: Errors_and_messages = Errors_and_messages()
     init{
-        computing_settings = Computing_settings()
-        err_and_mes = Errors_and_messages()
+        verify_data(true, true, true)
+        tracks.forEach { it.m3db = it.mesh.create_3diag_matrix_band(it) }
         init_find_index_mps()
         init_eval_a_x_find()
     }
@@ -42,7 +43,7 @@ class Calc(
     /**
      * TODO("add fun definition")
      */
-    fun init_find_index_mps(){
+    private fun init_find_index_mps(){
         num_track_mps = Array(mpss.size) { IntArray(2) } // инициализируем массивы
         index_mps = Array(mpss.size) { IntArray(2) }
         a_x_find =Array(mpss.size) { Array<Real>(mpss.size){0.R} } // инициализируем общий массив влияния
@@ -59,7 +60,7 @@ class Calc(
      * на входе матрица и вектор правой части
      * на выходе вектор ответов
      */
-    fun solve_3diag_band(matrixBand: Array<Array<Real>>, vectorB: Array<Real> ): Array<Real> { // matrix_band – трёхдиагональная ленточная матрица, vector_b - вектор правой части
+    private fun solve_3diag_band(matrixBand: Array<Array<Real>>, vectorB: Array<Real> ): Array<Real> { // matrix_band – трёхдиагональная ленточная матрица, vector_b - вектор правой части
         val N = vectorB.size
         val v = Array<Real>(N){0.R}
         val u = Array<Real>(N){0.R}
@@ -69,12 +70,10 @@ class Calc(
         u[0] = -vectorB[0] / -matrixBand[1][0]
         for (i in 1 until N - 1) {
             v[i] = matrixBand[2][i + 1] / (-matrixBand[1][i] - matrixBand[0][i - 1] * v[i - 1])
-            u[i] =
-                (matrixBand[0][i - 1] * u[i - 1] - vectorB[i]) / (-matrixBand[1][i] - matrixBand[0][i - 1] * v[i - 1])
+            u[i] = (matrixBand[0][i - 1] * u[i - 1] - vectorB[i]) / (-matrixBand[1][i] - matrixBand[0][i - 1] * v[i - 1])
         }
         v[N - 1] = 0.0.R
-        u[N - 1] =
-            (matrixBand[0][N - 2] * u[N - 2] - vectorB[N - 1]) / (-matrixBand[1][N - 1] - matrixBand[0][N - 2] * v[N - 2])
+        u[N - 1] = (matrixBand[0][N - 2] * u[N - 2] - vectorB[N - 1]) / (-matrixBand[1][N - 1] - matrixBand[0][N - 2] * v[N - 2])
         //обратная проходка
         out[N - 1] = u[N - 1]
         for (i in N - 1 downTo 1) {
@@ -85,7 +84,7 @@ class Calc(
     /**
      * Фукция расчета коэффициентов влиияния МПС от них самих
      */
-    fun init_eval_a_x_find(){
+    private fun init_eval_a_x_find(){
         val N_find = this.mpss.size /* количестов поисковых точек */
         val Imps = 1000.0.R
         // уловный ток МПС для определения коэффициентов влияния
@@ -134,7 +133,7 @@ class Calc(
      * @param arr_XI - массив PV
      * @param coeff_I - коэффициент на который умножается значение тока
      */
-    fun addValues_vector_b_1node( mesh: Mesh, vectorB: Array<Real>, arr_XI: Array<PV>, coeff_I: Real ): Array<Real>
+    private fun addValues_vector_b_1node( mesh: Mesh, vectorB: Array<Real>, arr_XI: Array<PV>, coeff_I: Real ): Array<Real>
     {
         for (i in arr_XI.indices) {
             vectorB[mesh.find_near_index_over_mesh(arr_XI[i].point)] += arr_XI[i].value * coeff_I
@@ -147,7 +146,7 @@ class Calc(
      * @param arr_XI -  массив PV
      * @param coeff_I  - коэффициент тока
      */
-    fun addValues_vector_b_2node( mesh: Mesh, vectorB: Array<Real>, arr_XI: Array<PV>, coeff_I: Real  ): Array<Real>
+    private fun addValues_vector_b_2node( mesh: Mesh, vectorB: Array<Real>, arr_XI: Array<PV>, coeff_I: Real  ): Array<Real>
     {
         for (i in arr_XI.indices) {
             val index2 = mesh.find_2near_index_over_mesh( arr_XI[i].point ) // номер левого и правого узла
@@ -160,28 +159,15 @@ class Calc(
         return vectorB
     }
     /**
-     *  Расчет постоянной составляющей напряжения в точках МПС
+     *  Рассчит напряжение в узлах каждого пути от постоянных источников
      */
-    fun eval_U_const() {
-        // Рассчитаем напряжение в узлах каждого пути от постоянных источников
+    private fun eval_U_const() {
         for (tr in tracks){
-            //FIX ME - а зачем расчет первый раз?, может пропущено что то
             tr.vectorB = addValues_vector_b_1node(tr.mesh, tr.vectorB, tr.fot, -1.0.R ) // в точках ФОТ ток в одном узле с минусом
-//            println("vecB1: ${Arrays.deepToString(tr.vectorB)} ")
-            //FIX ME  - add some calc - in other case line aboouve useless
             tr.vectorB = addValues_vector_b_2node(tr.mesh, tr.vectorB, tr.eps, 1.0.R ) // в точках ЭПС ток  в двух ближайших узлах
-//            println("vecB2: ${Arrays.deepToString(tr.vectorB)} ")
             tr.U = solve_3diag_band(tr.m3db, tr.vectorB) //потенциал в рельсах в узлах сетки
-            //println("tr.name: ${Arrays.deepToString(tr.vectorB)} ")
             println("tr.name.u, ${Arrays.toString(tr.U) } ")
         }
-/*      // по параметрам МПС (номерам путей и координатам точек начала и конца) запишем в U1_const и U2_const  в узлах с МПС  напряжения в рельсах от постоянных источников
-        U_const = Array<Real>(mpss.size){0.R}
-        for (j in mpss.indices) {
-            U_const[j] = tracks[num_track_mps[j][0]].U[index_mps[j][0]] - tracks[num_track_mps[j][1]].U[index_mps[j][1]]
-        }
-        println("U_const: ${Arrays.deepToString(U_const)} ")
-*/
         U_const = Array<Real>(mpss.size){ j -> tracks[num_track_mps[j][0]].U[index_mps[j][0]] - tracks[num_track_mps[j][1]].U[index_mps[j][1]]}
         println("U_const:, ${Arrays.deepToString(U_const)} ")
     }
@@ -189,13 +175,11 @@ class Calc(
     /**
      * Заполняет вектор правой части всех точек нулями
      */
-    fun zeros_vector_b() {
+    private fun zeros_vector_b() {
         // проход по всем путям обнуление правой части ФОТ и ЭПС
         for ( tr in tracks ){
             // обнуление для точек в один узел сетки ФОТ
             for (fotPoint in tr.fot ) {
-                //FIX ME  тут точно нужен такой вложенный массив с поиском по сетке - мы не полность зануляем вектор
-                // так не подожет for (i in tr.vectorB) i=0;
                 tr.vectorB[tr.mesh.find_near_index_over_mesh(fotPoint.point)] = 0.0.R
             }
             //обнуление для точек в два узла сетки ЭПС
@@ -211,16 +195,15 @@ class Calc(
             tracks[num_track_mps[i][1]].vectorB[index_mps[i][1]] = 0.0.R
         }
     }
-
     /**
      * Метод для расчёта мгновенной схемы ОТС с указанием начального значения тока в МПС
      */
-/*    fun calc_ots(init_I_poisk: Array<Real>): Boolean {
+    fun calc_ots(init_I_poisk: Array<Real>): Boolean {
         return if (!verifi_I_poisk(init_I_poisk)) {
             false
         } else calc_I_poisk(init_I_poisk)
     }
-*/
+
     /**
      * Метод для расчёта мгновенной схемы ОТС без указания начального значения тока в поисковых точках
      */
@@ -236,12 +219,8 @@ class Calc(
     private fun calc_I_poisk(init_I_poisk: Array<Real>): Boolean { // возвращает истина если расчёт сошёлся, ложь в обратном случае
         err_and_mes.reset_solver_error() //обнулим ошибки решателя
         err_and_mes.calc_completed = true
-/*        verify_data(
-            false,
-            false,
-            true
-        ) // проверка исходных данных только координ ЭПС, т.к. остальное проверено при инициализации
-        */
+        verify_data( false, false, true ) // проверка исходных данных только координ ЭПС, т.к. остальное проверено при инициализации
+
         if (err_and_mes.data_error) { //проверка если данные корректны
             err_and_mes.solver_error = true
             err_and_mes.messeg_solver_error = "Расчёт невозможен. Ошибка исходных данных"
@@ -294,12 +273,12 @@ class Calc(
         zeros_vector_b()
         if (convergence_not_achieved) {
             err_and_mes.solver_error = true
-            err_and_mes.messeg_solver_error =
-                "Превышено максимальное число итераций равное " + computing_settings.max_number_iterat + " заданная сходимость (сред невязка по напряжен) равная " + computing_settings.convergence_U + " не достигнута."
+            err_and_mes.messeg_solver_error = "Превышено максимальное число итераций равное " + computing_settings.max_number_iterat + " заданная сходимость (сред невязка по напряжен) равная " + computing_settings.convergence_U + " не достигнута."
         }
         return !convergence_not_achieved // возврат обратное к несходимости: истина если расчёт сошёлся
     }
-    /*При найденных токах МПС рассчитывает напряжения и ток в рельсах решением М3ДЛ
+    /**
+     * При найденных токах МПС рассчитывает напряжения и ток в рельсах решением М3ДЛ
      */
     private fun eval_node_from_all_I() {
         var g_rh: Real
@@ -338,6 +317,182 @@ class Calc(
             g_rh = 1 / tr.Rvn       //проводимость справа от последнего узла через волновое сопротивление в конце
             tr.I[N - 1] = 0.5 * ((tr.U[N - 2] - tr.U[N - 1]) * g_lf + (tr.U[N - 1] - 0) * g_rh) // ток в рельсе для псоледнего узла
             tr.Ignd[N - 1] = tr.Ignd[N - 2] + tr.U[N - 1] * (tr.m3db[1][N - 1] + tr.m3db[2][N - 1] - 1 / tr.Rvn) //ток в земле для последнего узла
+        }
+    }
+    /**
+     * проверка коорректности входного двумерного массива I_poisk[] содержащего токи МПС
+     * возвращает true если корректен, и в противном случае false
+     */
+    private fun verifi_I_poisk(I_poisk: Array<Real>): Boolean {
+        if (I_poisk.size != mpss.size) {
+            err_and_mes.messeg_solver_error = "Ошибка при вводе массива токов МПС. Количество элементов массива должно совпадать с количеством соответствующих точек МПС"
+            return false
+        }
+        return true
+    }
+
+    /**
+     *  Возвращает параметр распределенный по узлам сетки в привязке к координатам
+     *  @param mesh - сетка пути
+     *  @param xRail - массив координат, км;
+     *  @param arrParamNode - массив параметра рсапредленный по узлам сетки
+     */
+    private fun return_X_param_rail(mesh: Mesh, xRail: DoubleArray, arrParamNode: Array<Real> ): Array<Real> {
+        //проверки при некорректности возврат null
+        if (err_and_mes.data_error || !err_and_mes.calc_completed) { // проверка если ошибка исходных данных или расчёт не выполнен, то выводим пустой массив
+            throw Exception("Расчет не выполнен")
+        }
+        if (xRail.first() < mesh.X.first() ) { // проверка если координаты расчётного массива за пределами сетки
+            throw trackOutOfMeshException("trackOutOfMeshException point ${xRail.first()} out of left edge ${mesh.X.first()} of mesh")
+        }
+        if (xRail.last() > mesh.X.last()) { // проверка если координаты расчётного массива за пределами сетки
+            throw trackOutOfMeshException("trackOutOfMeshException point ${xRail.last()} out of right edge ${mesh.X.last()} of mesh")
+        }
+        //непосредственно распредление параметра в узлах сетки на массив координат в пределах сетки
+        val out = Array<Real>(xRail.size){0.R}
+        for (i in xRail.indices) {
+            val indexes = mesh.find_2near_index_over_mesh(xRail[i]) // индексы левого и правого узла сетки относительно координаты X_rail[i]
+            val proportion_node_left = (mesh.X[indexes[1]] - xRail[i]) / mesh.dX // доля для левого узла сетки обратно пропорциональна расстоянию до правого узла
+            out[i] = arrParamNode[indexes[0]] * proportion_node_left + arrParamNode[indexes[1]] * (1 - proportion_node_left) // напряжение в левом узле на его долю + напряжение в правом узле на его долю
+        }
+        return out
+    }
+    /**
+     * Геттер возвращает напряжение рельс-земля в виде массива по заданным координатам точек
+     * @param track - путь
+     * @param xRrail - массив значений
+     * @return -
+     */
+    fun get_U_rail( track: Track, xRrail: DoubleArray ): Array<Real> { //  num_track - номер пути; X_rail - массив координат км;
+        return return_X_param_rail(track.mesh, xRrail, track.U)
+    }
+    /**
+     * сеттер задает значения в МПС без выполнения непосредственного системы уравнений
+     * возвращает true при успешном выполнении процедуры, false  - в противном случае
+     * на вход принимает двумерный массив содержащий три строки, это массивы токов в следующем порядке: МПС, ЗАЗ1, ЗАЗ2
+     * @param I_poisk - массив токов междупутных соединителей
+     */
+    fun set_I_poisk_no_call(I_poisk: Array<Real>): Boolean {
+        if (err_and_mes.data_error) { // проверка если ошибка исходных данных, то выводим  false. Без кооректного задания ФОТ, ЭПС1 и ЭПС2 - расчёт даже в этом случае невозможен
+            err_and_mes.messeg_solver_error = "Задание тока в МПС не возможно. Ошибка исходных данных"
+            return false
+        }
+        if (!verifi_I_poisk(I_poisk)) { //вызываем метод проверки корректности введенного двумерного массива I_poisk
+            return false
+        }
+        //записываем массивы токов в поисковых точках из заданных на входе
+        I_mps = I_poisk
+        zeros_vector_b() // обнуление вектора правой части всех путей
+        eval_U_const() // расчёт от постоянных источников
+        eval_node_from_all_I() // расчёт всех узлов с учётом токов МПС
+        return true
+    }
+
+    /**
+     * Расчитывает мгновенную мощность потерь в ОТС, кВт
+     * @return мгновенную мощность потерь в ОТС (все элементы ОТС) в кВт
+     */
+    fun get_P_ots(): Real {
+        if (err_and_mes.data_error || !err_and_mes.calc_completed) { // проверка если ошибка исходных данных или расчёт не выполнен, то выводим  -1
+            return -1.R
+            // throw Exception("Расчет не выполнен")
+        }
+        var P_ots = 0.0.R // мощность ОТС накапливается в этой переменной
+        for ( tr in tracks ){
+            for ( fot in tr.fot){
+                P_ots += -fot.value * get_U_rail(tr, doubleArrayOf(fot.point)).first()//tr.U.first()
+            }
+            for ( eps in tr.eps){
+                P_ots += eps.value * get_U_rail(tr, doubleArrayOf(eps.point)).first()//tr.U.first()
+            }
+        }
+        return P_ots
+    }
+    /**
+     * Проверяет исходные данные расчета
+     * @param verify_I условие проверки токов
+     * @param verify_Xfot_mps - проверка коорд ФОТ, МПС, ЗАЗ
+     * @param verify_Xeps - проверка коорд ЭПС
+     */
+    private fun verify_data( verify_I: Boolean, verify_Xfot_mps: Boolean, verify_Xeps: Boolean ) {
+        err_and_mes.reset_data_error() // очистка data_error
+        // проверка по заданию ФОТ и ЭПС и токам
+        var Neps_fot_all = 0
+        var Isum_fot = 0.0
+        var Isum_eps = 0.0
+        if (verify_I) {
+            // проверяем чтобы сумма токов ЭПС равнялась сумме токов ФОТ не превышая погрешности
+            // и что вообще ЭПС  и ФОТ заданы
+            for ( tr in tracks ) {
+                Neps_fot_all += tr.fot.size + tr.eps.size
+                tr.fot.forEach { Isum_fot += it.value.mod }
+                tr.eps.forEach { Isum_eps += it.value.mod }
+            }
+            if (Neps_fot_all == 0) { // если массивы ФОТ и/или ЭПС не заданы
+                err_and_mes.data_error = true
+                err_and_mes.messeg_data_error += "Массивы ФОТ и/или ЭПС не заданы. "
+            }
+            val deltaI = Math.abs(Isum_fot - Isum_eps)
+            if (deltaI / (Math.max(Math.abs(Isum_fot), Math.abs(Isum_eps)) + 1e-6) > 0.05) {
+                err_and_mes.messeg_data_error += " Предупреждение: сумма токов ФОТ и ЭПС расходится более чем на 5 %"
+            }
+        }
+
+        // проверки по сетке и координатам
+        if (verify_Xfot_mps) {
+            // проверяем чтобы  границы сетки заданы корректно
+            for ( mesh in meshes) {
+                if (mesh.X_end - mesh.X_beg <= 2 * mesh.dX) { // если ошибка в границах сетки и менее двух узлов
+                    err_and_mes.data_error = true
+                    err_and_mes.messeg_data_error += "Сетка номер MESH_IDENT границы сетки заданы не корректно, либо получается менее трёх узлов"
+                }
+            }
+            //проверяем чтобы координаты точек ФОТ, ЗАЗ, R_tch укладывались в границы сетки данного пути
+            for (tr in tracks){
+                for (fot in tr.fot) {
+                    if (fot.point > tr.mesh.X_end || fot.point < tr.mesh.X_beg) {
+                        err_and_mes.data_error = true
+                        err_and_mes.messeg_data_error += "Путь номер ${tr.name}: координаты точек ФОТ выходят за границы сетки"
+                    }
+                }
+                for (zaz in tr.zaz){
+                    if (zaz.point > tr.mesh.X_end || zaz.point < tr.mesh.X_beg) {
+                        err_and_mes.data_error = true
+                        err_and_mes.messeg_data_error += "Путь номер ${tr.name}: координаты точек ЗАЗ выходят за границы сетки"
+                    }
+                }
+                for (tch in tr.Rtch) {
+                    if (tch.point > tr.mesh.X_end || tch.point < tr.mesh.X_beg) {
+                        err_and_mes.data_error = true
+                        err_and_mes.messeg_data_error += "Путь номер ${tr.name}: координаты сосредоченных сопростивлений выходят за границы сетки"
+                    }
+                }
+            }
+            // проверка чтобы точки подключения МПС к путям в пределах сетки
+            for (mps in mpss) {
+                val mesh1 = tracks[mps.startTrack].mesh
+                val mesh2 = tracks[mps.endTrack].mesh
+                if (mps.startPoint > mesh1.X_end || mps.startPoint < mesh1.X_beg) {
+                    err_and_mes.data_error = true
+                    err_and_mes.messeg_data_error += "МПС ${mps.toString()}: координата начальной точки подключения к пути ${mps.startTrack} выходит за границы сетки"
+                }
+                if (mps.endPoint > mesh2.X_end || mps.endPoint < mesh2.X_beg) {
+                    err_and_mes.data_error = true
+                    err_and_mes.messeg_data_error += "МПС ${mps.toString()}: координата конечной точки подключения к пути ${mps.endTrack} выходит за границы сетки"
+                }
+            }
+        }
+        if (verify_Xeps) {
+            //проверяем чтобы координаты точек ЭПС укладывались в границы сетки данного пути
+            for ( tr in tracks ) {
+                val mesh = tr.mesh
+                for ( eps in tr.eps ) {
+                    if (eps.point > mesh.X_end || eps.point < mesh.X_beg) {
+                        err_and_mes.data_error = true
+                        err_and_mes.messeg_data_error += "Путь ${tr.name}: координаты поездов выходят за границы сетки"
+                    }
+                }
+            }
         }
     }
 }

@@ -93,4 +93,5 @@ fun main() {
         println("track${i}.I: ${Arrays.toString(ots1.get_I_rail(i))} ")
     }
 */
+    println("P: ${ots1.get_P_ots()}")
 }
