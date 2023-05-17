@@ -47,24 +47,24 @@ fun main(args: Array<String>) {
     track4.Rv0 = 1e6.R
     track5.Rv0 = 1e6.R
 
-    val mps = arrayOf( Mps(0, 1, 140.5, 140.5, 0.9e-3.R), Mps(1, 2, 140.5, 140.5, 0.9e-3.R),
-        Mps(0, 1, 151.5, 151.5, 1.5e-3.R ), /*МПС по главным путям 1-3*/
-        Mps(0, 2, 155.5, 155.5, 1.6e-3.R ),
-        Mps(0, 1, 160.2, 160.2, 1.4e-3.R ), Mps(1, 2, 160.2, 160.2, 1.1e-3.R ),
-        Mps(1, 2, 167.2, 167.2, 1.4e-3.R ),
-        Mps(0, 1, 176.7, 176.7, 0.7e-3.R ),
-        Mps(1, 2, 177.1, 177.1, 1.8e-3.R ),
+    val mps = arrayOf( Mps(track0, track1, 140.5, 140.5, 0.9e-3.R), Mps(track1, track2, 140.5, 140.5, 0.9e-3.R),
+        Mps(track0, track1, 151.5, 151.5, 1.5e-3.R ), /*МПС по главным путям 1-3*/
+        Mps(track0, track2, 155.5, 155.5, 1.6e-3.R ),
+        Mps(track0, track1, 160.2, 160.2, 1.4e-3.R ), Mps(track1, track2, 160.2, 160.2, 1.1e-3.R ),
+        Mps(track1, track2, 167.2, 167.2, 1.4e-3.R ),
+        Mps(track0, track1, 176.7, 176.7, 0.7e-3.R ),
+        Mps(track1, track2, 177.1, 177.1, 1.8e-3.R ),
 
-        Mps(4, 5, 10.2, 10.2, 1.0e-3.R ), /*МПС по отход2*/
-        Mps(0, 3, 152.5, 0.0, 1.0e-5.R ), /*соединение путь гл1 (путь 0 в классе) и однопутн отход тупик (путь 3 в классе)*/
-        Mps(1, 4, 170.5, 0.0, 1.0e-5.R ), /*соединение путь гл2 (путь 1 в классе) и  отход2 путь1 (путь 4 в классе) */
-        Mps(2, 5, 170.5, 0.0, 1.0e-5.R ), /*соединение путь гл3 (путь 2 в классе) и  отход2 путь2 (путь 5 в классе) */
+        Mps(track4, track5, 10.2, 10.2, 1.0e-3.R ), /*МПС по отход2*/
+        Mps(track0, track3, 152.5, 0.0, 1.0e-5.R ), /*соединение путь гл1 (путь 0 в классе) и однопутн отход тупик (путь 3 в классе)*/
+        Mps(track1, track4, 170.5, 0.0, 1.0e-5.R ), /*соединение путь гл2 (путь 1 в классе) и  отход2 путь1 (путь 4 в классе) */
+        Mps(track2, track5, 170.5, 0.0, 1.0e-5.R ), /*соединение путь гл3 (путь 2 в классе) и  отход2 путь2 (путь 5 в классе) */
         )
-
+/*
     val calc = Calc (arrayOf(track0,track1,track2,track3,track4,track5), arrayOf(mesh0,mesh1,mesh2), mps)
-
     calc.calcOts()
-
+    println("P: ${calc.getPOts()}")
+*/
 /*
     println("track0.U: ${Arrays.deepToString(track0.U)} ")
     println("track1.U: ${Arrays.deepToString(track1.U)} ")
@@ -81,7 +81,6 @@ fun main(args: Array<String>) {
     println("track5.I: ${Arrays.deepToString(track5.I)} ")
 
 */
-    println("P: ${calc.getPOts()}")
 
     println("P: ${complexExp(1,1)}  ${1.0*kotlin.math.cos(1.0)}  ${1.0*kotlin.math.sin(1.0)}")
 
