@@ -4,7 +4,6 @@ import ots_calc.PV
 import ots_calc.Track
 import ots_calc.Calc
 import ots_calc.Mps
-import java.util.*
 
 fun main(args: Array<String>) {
 
@@ -64,8 +63,7 @@ fun main(args: Array<String>) {
 
     val calc = Calc (arrayOf(track0,track1,track2,track3,track4,track5), arrayOf(mesh0,mesh1,mesh2), mps)
 
-    calc.check()
-    calc.calc_ots()
+    calc.calcOts()
 
 /*
     println("track0.U: ${Arrays.deepToString(track0.U)} ")
@@ -83,6 +81,6 @@ fun main(args: Array<String>) {
     println("track5.I: ${Arrays.deepToString(track5.I)} ")
 
 */
-    println("P: ${calc.get_P_ots()}")
+    println("P: ${calc.getPOts()}")
 
 }

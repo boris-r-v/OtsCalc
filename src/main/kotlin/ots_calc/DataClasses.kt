@@ -1,8 +1,5 @@
 package ots_calc
 
-//import org.kotlinmath.*
-//typealias Real = Complex
-
 /**
  * Класс с описание одного междупутного соединителя
  *
@@ -39,54 +36,54 @@ data class PV(  val point: Double,
 /**
  * Иключение генерируемое когда ордината пути вышла за границу сетки
  */
-class trackOutOfMeshException(message: String) : Exception(message)
+class TrackOutOfMeshException(message: String) : Exception(message)
 
 
 /**
  * класс для ошибок при вычислениях, вводе данных, и сообщений о них
  */
-data class verify_data( // инициализатор по умолчанию - ошибок нет, расчёт не выполнен
-    var data_error: Boolean = false,
-    var solver_error: Boolean = false,
-    var calc_completed: Boolean = false, //data_error - ошибка в данных (к примеру, неправильная длина массива), solver_error - шибка решателя (к примеру, не достигнута сходимость, исчерпано число итераций), calc_completed  - признак что расчёт выполнен хотя бы раз
-    var messeg_data_error: String = "",
-    var messeg_solver_error: String = "Расчёт не выполнен", // текстовое сообщение об этих ошибках
+data class VerifyData( // инициализатор по умолчанию - ошибок нет, расчёт не выполнен
+    var dataError: Boolean = false,
+    var solverError: Boolean = false,
+    var calcCompleted: Boolean = false, //data_error - ошибка в данных (к примеру, неправильная длина массива), solver_error - шибка решателя (к примеру, не достигнута сходимость, исчерпано число итераций), calc_completed  - признак что расчёт выполнен хотя бы раз
+    var messegDataError: String = "",
+    var messegSolverError: String = "Расчёт не выполнен", // текстовое сообщение об этих ошибках
     )    // геттеры для всех свойств
-    fun verify_data.reset_data_error() {
-        data_error = false
-        messeg_data_error = ""
+    fun VerifyData.resetDataError() {
+        dataError = false
+        messegDataError = ""
     }
-    fun verify_data.reset_solver_error() {
-        solver_error = false
-        messeg_solver_error = ""
+    fun VerifyData.resetSolverError() {
+        solverError = false
+        messegSolverError = ""
     }
 
 /**
  * Класс содержит конфигурацию рассчета
  */
-data class Computing_settings( // инициализатор по умолчанию
-    var convergence_U: Double = 0.01, // допустимая невязка величины напряжения усреднённая по всем точкам граничного условия, в которых происходит итерационный поиск величины тока втекающего в эти точки.
-    var max_number_iterat: Int = 1000, // максимальное число итераций при расчёте величины тока, втекающего в граничные точки, по методу Ньютона в цикле.
-    var initial_damping_factor: Double = 0.7, // начальное коэффициент демпфирования в методе Ньютона при расчёте величины тока, втекающего в граничные точки.
-    var current_state_solver: DoubleArray = doubleArrayOf(0.0, 0.0, 0.0), // текущее состояние решателя содержит массив из трёх чисел полученных в конце последнего расчёта: 1 - количество итераций, 2- средняя невязка по напряжению, 3 - коэффициент демпфирования
+data class ComputingSettings( // инициализатор по умолчанию
+    var convergenceU: Double = 0.01, // допустимая невязка величины напряжения усреднённая по всем точкам граничного условия, в которых происходит итерационный поиск величины тока втекающего в эти точки.
+    var maxIterNumber: Int = 1000, // максимальное число итераций при расчёте величины тока, втекающего в граничные точки, по методу Ньютона в цикле.
+    var initialDampingFactor: Double = 0.7, // начальное коэффициент демпфирования в методе Ньютона при расчёте величины тока, втекающего в граничные точки.
+    var currentStateSolver: DoubleArray = doubleArrayOf(0.0, 0.0, 0.0), // текущее состояние решателя содержит массив из трёх чисел полученных в конце последнего расчёта: 1 - количество итераций, 2- средняя невязка по напряжению, 3 - коэффициент демпфирования
     )
 
 /**
  * класс для ошибок при вычислениях, вводе данных, и сообщений о них
  */
-data class Errors_and_messages ( // инициализатор по умолчанию - ошибок нет, расчёт не выполнен
-    var data_error: Boolean = false,
-    var solver_error: Boolean = false,
-    var calc_completed: Boolean = false, //data_error - ошибка в данных (к примеру, неправильная длина массива), solver_error - шибка решателя (к примеру, не достигнута сходимость, исчерпано число итераций), calc_completed  - признак что расчёт выполнен хотя бы раз
-    var messeg_data_error: String = "",
-    var messeg_solver_error: String = "Расчёт не выполнен", // текстовое сообщение об этих ошибках
+data class ErrorsAndMessages ( // инициализатор по умолчанию - ошибок нет, расчёт не выполнен
+    var dataError: Boolean = false,
+    var solverError: Boolean = false,
+    var calcCompleted: Boolean = false, //data_error - ошибка в данных (к примеру, неправильная длина массива), solver_error - шибка решателя (к примеру, не достигнута сходимость, исчерпано число итераций), calc_completed  - признак что расчёт выполнен хотя бы раз
+    var messegDataError: String = "",
+    var messegSolverError: String = "Расчёт не выполнен", // текстовое сообщение об этих ошибках
 )
-    fun Errors_and_messages.reset_data_error() {
-        data_error = false
-        messeg_data_error = ""
+    fun ErrorsAndMessages.resetDataError() {
+        dataError = false
+        messegDataError = ""
     }
-    fun Errors_and_messages.reset_solver_error() {
-        solver_error = false
-        messeg_solver_error = ""
+    fun ErrorsAndMessages.resetSolverError() {
+        solverError = false
+        messegSolverError = ""
     }
 
