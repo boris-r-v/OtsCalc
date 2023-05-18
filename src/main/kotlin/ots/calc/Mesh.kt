@@ -13,7 +13,7 @@ import kotlin.math.roundToInt
 * @param endX конечная координата участка расчёта, км
 * @param dX шаг сетки, км
 * @property meshN количество узлов сетки
-* @property x массив узлов сетки с привязкой к координатам
+* @property X массив узлов сетки с привязкой к координатам
 */
 class Mesh(
     val startX: Double,
@@ -22,12 +22,18 @@ class Mesh(
 )
 {
     val meshN: Int = ((endX - startX) / dX).toInt() + 1
-    internal val x: DoubleArray = DoubleArray(meshN)
+    internal val X: DoubleArray = DoubleArray(meshN)
 
     init {
-        x[0] = startX
+        if ( endX <= startX ) {
+            Exception("Сетка [${startX}, ${endX}] границы заданы не корректно: координата правоя точки меньше координаты левой")
+        }
+        if ( meshN <= 2 ) {
+            Exception("Сетка [${endX}, ${endX}] содержит менее трёх узлов, исправте настройки")
+        }
+        X[0] = startX
         for (i in 1 until meshN)
-            x[i] = x[i - 1] + dX
+            X[i] = X[i - 1] + dX
     }
     /**
      * Возвращает количесво услов сетки
@@ -40,43 +46,43 @@ class Mesh(
      */
     fun get(idx: Int): Double
     {
-        return x[idx]
+        return X[idx]
     }
     /**
     * Возвращает элементы сетки по индексам укааным во входном массиве
     */
     fun get(idx: IntArray): DoubleArray
     {
-        return doubleArrayOf(x[idx[0]], x[idx[1]])
+        return doubleArrayOf(X[idx[0]], X[idx[1]])
     }
     /**
      * находит ближайший индекс элемента сетки по заданной координате  X
      */
     fun findNearIndexOverMesh(x: Double): Int {
         /* если выходит за левую границу возвращает -1*/
-        if (x < this.x[0]) {
-            throw TrackOutOfMeshException("trackOutOfMeshException point $x out of left edge ${this.x[0]} of mesh")
+        if (x < this.X[0]) {
+            throw TrackOutOfMeshException("trackOutOfMeshException point $x out of left edge ${this.X[0]} of mesh")
         }
         /* если выходит за правую границу возвращает -2 */
-        if (x > this.x[this.x.size - 1]) {
-            throw TrackOutOfMeshException("trackOutOfMeshException point $x out of right edge ${this.x[this.x.size - 1]} of mesh")
+        if (x > this.X[this.X.size - 1]) {
+            throw TrackOutOfMeshException("trackOutOfMeshException point $x out of right edge ${this.X[this.X.size - 1]} of mesh")
         }
 
-        return ((x - this.x[0]) / dX).roundToInt()
+        return ((x - this.X[0]) / dX).roundToInt()
     }
     /**
     * находит два ближайших индекса элемента сетки по заданной координате  X
     *          возвращает int[2] - номер ближ элемента слева и справа
     */
     fun find2nearIndexOverMesh(x: Double ): IntArray {
-        if (x < this.x[0]) { // если выходит за левую границу
-            throw TrackOutOfMeshException("trackOutOfMeshException point $x out of left edge ${this.x[0]} of mesh")
+        if (x < this.X[0]) { // если выходит за левую границу
+            throw TrackOutOfMeshException("trackOutOfMeshException point $x out of left edge ${this.X[0]} of mesh")
         }
-        if (x > this.x[this.x.size - 1]) { // если выходит за правую границу
-            throw TrackOutOfMeshException("trackOutOfMeshException point $x out of right edge ${this.x[this.x.size - 1]} of mesh")
+        if (x > this.X[this.X.size - 1]) { // если выходит за правую границу
+            throw TrackOutOfMeshException("trackOutOfMeshException point $x out of right edge ${this.X[this.X.size - 1]} of mesh")
         }
-        return intArrayOf(  floor((x - this.x[0]) / dX).toInt(),
-                            ceil((x - this.x[0]) / dX).toInt() )
+        return intArrayOf(  floor((x - this.X[0]) / dX).toInt(),
+                            ceil((x - this.X[0]) / dX).toInt() )
     }
     /**
      * метод распределяет функцию заданную таблицей table[][] на сетку
@@ -85,8 +91,8 @@ class Mesh(
      *  table[][] должен содержать как минимум одну строку,
      *  последняя строка считается до конца сетки не зависимо от координаты в ней
      */
-    private fun distributeFunctionOverMesh(table: Array<PV>): Array<Real> {
-        val n = x.size
+    internal fun distributeFunctionOverMesh(table: Array<PV>): Array<Real> {
+        val n = X.size
         val out: Array<Real> = Array( n ){0.R}
         if (table.size == 1) { // если в таблице только одна строка, то по всей сетке одно значение
             for (i in 0 until n) {
@@ -146,15 +152,8 @@ class Mesh(
         }
         // далее все распределенные параметры дискретезуются по сетке в сосредоточенные для каждого элемента
         //из Ом/км -> Ом (вдоль пути); Ом*км -> Ом (на землю)
-        if (track.Rv0 == (-1.0).R) { // если волновое сопротивление =-1, то определим автоматически
-            track.Rv0 = sqrt(r[0] * rp[0]) // sqrt(Ом/км*Ом*км)=sqrt(Ом*Ом)=Ом
-        }
-        if (track.Rvn == (-1.0).R) {
-            track.Rvn = sqrt(r[n - 1] * rp[n - 1]) // sqrt(Ом/км*Ом*км)=sqrt(Ом*Ом)=Ом
-        }
         r0 = 0.5 * (r[0] + r[1]) * dX + rTch[0] // Ом/км*км=Ом
         rnMn = 0.5 * (r[n - 2] + r[n - 1]) * dX + rTch[n - 2]
-
         //заполняем первый столбец трех диагоналей
         //все элементы трехдиагональной матрицы имеют размерность См=1/Ом
         diagUp[0] = 0.0.R

@@ -2,7 +2,7 @@ import ots.complex.*
 import ots.calc.Mesh
 import ots.calc.PV
 import ots.calc.Track
-import ots.calc.Calc
+import ots.calc.Compute
 import ots.calc.Mps
 
 fun main(args: Array<String>) {
@@ -11,15 +11,6 @@ fun main(args: Array<String>) {
     val mesh1 = Mesh(0.0,7.0, 0.1)
     val mesh2 = Mesh(0.0,14.0, 0.1)
 
-    /*
-    val x = 153.345
-    println("find point: ${x}, " +
-            "${mesh.get(mesh.find_near_index_over_mesh(x))}")
-    println("find point: ${x}, " +
-            "${mesh.find_2near_index_over_mesh(x)[0]} ${mesh.find_2near_index_over_mesh(x)[1]}, " +
-            "${mesh.get(mesh.find_2near_index_over_mesh(x))[0]} ${mesh.get(mesh.find_2near_index_over_mesh(x))[1]}")
-*/
-    val emp = arrayOf<PV>()
     val r13 = arrayOf( PV(189.0, 0.0254189.R) )
     val rp13 = arrayOf( PV(179.0, 20.R) )
 
@@ -36,16 +27,13 @@ fun main(args: Array<String>) {
     val eps2 = arrayOf( PV(145.3, 1600.R) )
     val eps5 = arrayOf( PV(12.1, 1400.R) )
 
-    val track0 = Track("0", r13, rp13, fot0, eps0, emp, emp, mesh0)
-    val track1 = Track("1", r13, rp13, emp, eps1, emp, emp,  mesh0)
-    val track2 = Track("2", r13, rp13, emp, eps2, emp, emp,  mesh0)
-    val track3 = Track("3", r4,  rp4,  emp, emp,  emp, emp,  mesh1)
-    val track4 = Track("4", r56, rp56, fot4, emp, emp, emp,  mesh2)
-    val track5 = Track("5", r56, rp56, emp, eps5, emp, emp,  mesh2)
-    track3.Rv0 = 1e6.R
-    track3.Rvn = 1e6.R
-    track4.Rv0 = 1e6.R
-    track5.Rv0 = 1e6.R
+    val emp = arrayOf<PV>()
+    val track0 = Track("0", mesh0, r13, rp13, fot0, eps0 )
+    val track1 = Track("1", mesh0, r13, rp13, emp,  eps1 )
+    val track2 = Track("2", mesh0, r13, rp13, emp,  eps2 )
+    val track3 = Track("3", mesh1, r4,  rp4,  emp,  emp,  1e6.R, 1e6.R )
+    val track4 = Track("4", mesh2, r56, rp56, fot4, emp,  1e6.R )
+    val track5 = Track("5", mesh2, r56, rp56, emp,  eps5, 1e6.R )
 
     val mps = arrayOf( Mps(track0, track1, 140.5, 140.5, 0.9e-3.R), Mps(track1, track2, 140.5, 140.5, 0.9e-3.R),
         Mps(track0, track1, 151.5, 151.5, 1.5e-3.R ), /*МПС по главным путям 1-3*/
@@ -60,11 +48,11 @@ fun main(args: Array<String>) {
         Mps(track1, track4, 170.5, 0.0, 1.0e-5.R ), /*соединение путь гл2 (путь 1 в классе) и  отход2 путь1 (путь 4 в классе) */
         Mps(track2, track5, 170.5, 0.0, 1.0e-5.R ), /*соединение путь гл3 (путь 2 в классе) и  отход2 путь2 (путь 5 в классе) */
         )
-/*
-    val calc = Calc (arrayOf(track0,track1,track2,track3,track4,track5), arrayOf(mesh0,mesh1,mesh2), mps)
+
+    val calc = Compute (arrayOf(track0,track1,track2,track3,track4,track5), mps)
     calc.calcOts()
     println("P: ${calc.getPOts()}")
-*/
+
 /*
     println("track0.U: ${Arrays.deepToString(track0.U)} ")
     println("track1.U: ${Arrays.deepToString(track1.U)} ")
@@ -81,7 +69,5 @@ fun main(args: Array<String>) {
     println("track5.I: ${Arrays.deepToString(track5.I)} ")
 
 */
-
-    println("P: ${complexExp(1,1)}  ${1.0*kotlin.math.cos(1.0)}  ${1.0*kotlin.math.sin(1.0)}")
 
 }

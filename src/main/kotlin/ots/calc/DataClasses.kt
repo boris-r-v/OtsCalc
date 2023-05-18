@@ -3,18 +3,23 @@ package ots.calc
 /**
  * Класс с описание одного междупутного соединителя
  *
- * @param startTrack Номер первого пути междупутного соединителя
- * @param endTrack Номер второго пути междупутного соединителя
+ * @param startTrack Первый путь междупутного соединителя
+ * @param endTrack Второй путь междупутного соединителя
  * @param startPoint Координата начальной точки подключения, км
  * @param endPoint Координата конечной точки подключенияб км
  * @param resValue Сопротивлнеи соединителя, Ом
+ * @property startMeshIdx Номер узла сетки точки подключения соединителя к первому пути
+ * @property endMeshIdx  Номер узла сетки точки подключения соединителя к первому пути
  */
 data class Mps( val startTrack: Track,
                 val endTrack: Track,
                 val startPoint: Double,
                 val endPoint: Double,
                 val resValue: Real,
-)
+){
+    val startMeshIdx = startTrack.mesh.findNearIndexOverMesh(startPoint)
+    val endMeshIdx = endTrack.mesh.findNearIndexOverMesh(endPoint)
+}
 
 /**
  * Зачение чего то в определенной точки пути

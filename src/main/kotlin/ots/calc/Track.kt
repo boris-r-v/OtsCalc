@@ -5,15 +5,18 @@ typealias Real = Complex
 /**
  * Класс пути
  *
+ * @param name имя пути нужно только вывода в отладочные сообщения
+ * @param mesh сетки для данного пути
  * @param r функция погонного сопротивления рельсов вдоль пути.
  * @param rp функция переходного сопротивления рельсы-земля вдоль пути
  * @param fot таблица подключенных к данному пути ФОТ
  * @param esp таблица ЭПС находящихся на данном пути
+ * @param uRv0 параметр конструктора класса нужен для определения задано ли сопротивления в начале рельсовой линии или его расчитать нужно
+ * @param uRvn параметр конструктора класса нужен для определения задано ли значение сопротивления в конце рельсовой линии или его расчитать нужно
  * @param zaz таблица ЗАЗ находящихся на данном пути
  * @param Rtch таблица сосредоточенных точечных сопротивлений в рельсах на данном пути
- * @param numMesh номер сетки для данного пути
- * @param Rv0 волновое сопротивление слева Ом
- * @param Rvn волновое сопротивление справа Ом
+ * @property Rv0 волновое сопротивление слева Ом
+ * @property Rvn волновое сопротивление справа Ом
  * @property m3db трехдиагональнаыя матрица коэффициентов для этого пути
  * @property vectorB - массив хначений свободных членов
  * @property U - значение напряжений  рельс-земля в узлах сетки
@@ -22,28 +25,26 @@ typealias Real = Complex
  */
 class Track(
     val name: String,
+    val mesh: Mesh,
     val r: Array<PV>,
     val rp: Array<PV>,
     val fot: Array<PV>,
-    val eps: Array<PV>,
-    val zaz: Array<PV>,
-    val Rtch: Array<PV>,
-    val mesh: Mesh,
-    var Rv0: Real = -1.R,
-    var Rvn: Real = -1.R,
-)
-{
-    internal var m3db: Array<Array<Real>>
-    internal var vectorB: Array<Real>
-    internal var U: Array<Real>
-    internal var I: Array<Real>
-    internal var Ignd: Array<Real>
+    var eps: Array<PV>,
+    uRv0 : Real? = null,
+    uRvn : Real? = null,
+    val zaz: Array<PV> = arrayOf<PV>(),
+    val Rtch: Array<PV> = arrayOf<PV>(),
 
-    init {
-        m3db = arrayOf<Array<Real>>()
-        vectorB = Array(mesh.size()){0.R}
-        U = Array(mesh.size()){0.R}
-        I = Array(mesh.size()){0.R}
-        Ignd = Array(mesh.size()){0.R}
-    }
+    )
+{
+    private val rDs = mesh.distributeFunctionOverMesh( r )
+    private val rpDs = mesh.distributeFunctionOverMesh( rp )
+    internal val Rv0: Real = uRv0 ?: sqrt(rDs.first() * rpDs.first())
+    internal val Rvn: Real = uRvn ?: sqrt(rDs.last() * rpDs.last())
+    internal val m3db: Array<Array<Real>> = mesh.create3diagMatrixBand(this)
+    internal var vectorB: Array<Real> = Array(mesh.size()){0.R}
+    internal var U: Array<Real> = Array(mesh.size()){0.R}
+    internal var I: Array<Real> = Array(mesh.size()){0.R}
+    internal var Ignd: Array<Real> = Array(mesh.size()){0.R}
+
 }
