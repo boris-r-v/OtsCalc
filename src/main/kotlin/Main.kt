@@ -51,7 +51,7 @@ fun main(args: Array<String>) {
 
     val calc = Compute (arrayOf(track0,track1,track2,track3,track4,track5), mps)
     calc.calcOts()
-    println("P: ${calc.getPOts()}")
+    println("P:, ${calc.getPOts()}")
 
 /*
     println("track0.U: ${Arrays.deepToString(track0.U)} ")
