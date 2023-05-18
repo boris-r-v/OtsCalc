@@ -445,5 +445,5 @@ open class DefaultComplex(override val re: Double, override val im: Double = 0.0
         return result
     }
 
-    override fun toString() = asStringExp()
+    override fun toString() = asStringExp(format = "%.2f", locale = Locale.US)
 }
