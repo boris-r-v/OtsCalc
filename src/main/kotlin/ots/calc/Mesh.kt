@@ -22,8 +22,7 @@ class Mesh(
 )
 {
     val meshN: Int = ((endX - startX) / dX).toInt() + 1
-    internal val X: DoubleArray = DoubleArray(meshN)
-
+    internal val X: DoubleArray = DoubleArray(meshN){ startX+it*dX }
     init {
         if ( endX <= startX ) {
             Exception("Сетка [${startX}, ${endX}] границы заданы не корректно: координата правоя точки меньше координаты левой")
@@ -31,9 +30,6 @@ class Mesh(
         if ( meshN <= 2 ) {
             Exception("Сетка [${endX}, ${endX}] содержит менее трёх узлов, исправте настройки")
         }
-        X[0] = startX
-        for (i in 1 until meshN)
-            X[i] = X[i - 1] + dX
     }
     /**
      * Возвращает количесво услов сетки
