@@ -396,6 +396,30 @@ var toComplex: String.() -> Complex = {
  */
 var complex: (re: Number, im: Number) -> Complex = { re, im -> DefaultComplex(re.toDouble(), im.toDouble()) }
 
+/**
+ * Coefficient from degrees to radians
+ */
+const val rad2degree = PI/180.0
+/**
+ * Create a complex number from module and angle (given in degree) for exponential form
+ * @param mod the module of a complex number
+ * @param arg the angle in degree of a complex number
+ * @returm the created complex number
+ */
+var complexExp: (mod: Number, arg: Number) -> Complex = { mod, arg -> DefaultComplex(
+                                                                    mod.toDouble()*kotlin.math.cos(arg.toDouble()*rad2degree),
+                                                                    mod.toDouble()*kotlin.math.sin(arg.toDouble()*rad2degree)) }
+
+/**
+ * Create a complex number from module and angle (given in radian) for exponential form
+ * @param mod the module of a complex number
+ * @param arg the angle in radian of a complex number
+ * @returm the created complex number
+ */
+var complexExpRad: (mod: Number, arg: Number) -> Complex = { mod, arg -> DefaultComplex(
+                                                                    mod.toDouble()*kotlin.math.cos(arg.toDouble()),
+                                                                    mod.toDouble()*kotlin.math.sin(arg.toDouble())) }
+
 /** The imaginary unit i as constant */
 val I = complex(0, 1)
 
@@ -445,5 +469,5 @@ open class DefaultComplex(override val re: Double, override val im: Double = 0.0
         return result
     }
 
-    override fun toString() = asStringExp(format = "%.2f", locale = Locale.US)
+    override fun toString() = asString()//Exp(format = "%.2f", locale = Locale.US)
 }

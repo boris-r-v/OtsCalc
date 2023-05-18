@@ -20,10 +20,10 @@ fun main(args: Array<String>) {
             "${mesh.get(mesh.find_2near_index_over_mesh(x))[0]} ${mesh.get(mesh.find_2near_index_over_mesh(x))[1]}")
 */
     val emp = arrayOf<PV>()
-    val r13 = arrayOf( PV(189.0, 0.0254189.R+1.I) )
+    val r13 = arrayOf( PV(189.0, 0.0254189.R) )
     val rp13 = arrayOf( PV(179.0, 20.R) )
 
-    val r4 = arrayOf( PV(8.0, 0.028.R+1.I) )
+    val r4 = arrayOf( PV(8.0, 0.028.R) )
     val rp4 = arrayOf( PV(8.0, 1.1.R) )
 
     val r56 = arrayOf( PV(15.0, 0.026.R) )
@@ -82,5 +82,7 @@ fun main(args: Array<String>) {
 
 */
     println("P: ${calc.getPOts()}")
+
+    println("P: ${complexExp(1,1)}  ${1.0*kotlin.math.cos(1.0)}  ${1.0*kotlin.math.sin(1.0)}")
 
 }
