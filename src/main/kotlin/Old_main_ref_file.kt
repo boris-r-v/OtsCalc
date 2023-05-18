@@ -1,6 +1,6 @@
 //package org.boristest.OpeOverload
 
-import org.kotlinmath.*
+import ots.complex.*
 
 data class Point(val x: Double, val y: Double )
 

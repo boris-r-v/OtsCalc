@@ -1,4 +1,4 @@
-package ots_calc
+package ots.calc
 
 /**
  * Класс с описание одного междупутного соединителя
@@ -9,11 +9,11 @@ package ots_calc
  * @param endPoint Координата конечной точки подключенияб км
  * @param resValue Сопротивлнеи соединителя, Ом
  */
-data class Mps( val startTrack: Int,
-                val endTrack: Int,
-                val startPoint: Double,
-                val endPoint: Double,
-                val resValue: Real,
+data class Mps(val startTrack: Int,
+               val endTrack: Int,
+               val startPoint: Double,
+               val endPoint: Double,
+               val resValue: Real,
 )
 
 /**
@@ -29,8 +29,8 @@ data class Mps( val startTrack: Int,
  * @param point значение координаты точки
  * @param value значение величины в данной координате
  */
-data class PV(  val point: Double,
-                val value: Real,
+data class PV(val point: Double,
+              val value: Real,
 )
 
 /**

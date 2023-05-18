@@ -1,5 +1,4 @@
-import ots_calc.OTS_DC_HeterogRail_call_kt
-import java.util.*
+import ots.calc.OTS_DC_HeterogRail_call_kt
 
 fun main() {
     // создадим класс ОТС с указанием конструктору количества путей и сеток

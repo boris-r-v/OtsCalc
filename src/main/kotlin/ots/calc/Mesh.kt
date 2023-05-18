@@ -1,5 +1,5 @@
-package ots_calc
-import org.kotlinmath.*
+package ots.calc
+import ots.complex.*
 import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.roundToInt

@@ -1,9 +1,9 @@
-import org.kotlinmath.*
-import ots_calc.Mesh
-import ots_calc.PV
-import ots_calc.Track
-import ots_calc.Calc
-import ots_calc.Mps
+import ots.complex.*
+import ots.calc.Mesh
+import ots.calc.PV
+import ots.calc.Track
+import ots.calc.Calc
+import ots.calc.Mps
 
 fun main(args: Array<String>) {
 
@@ -20,10 +20,10 @@ fun main(args: Array<String>) {
             "${mesh.get(mesh.find_2near_index_over_mesh(x))[0]} ${mesh.get(mesh.find_2near_index_over_mesh(x))[1]}")
 */
     val emp = arrayOf<PV>()
-    val r13 = arrayOf( PV(189.0, 0.0254189.R) )
+    val r13 = arrayOf( PV(189.0, 0.0254189.R+1.I) )
     val rp13 = arrayOf( PV(179.0, 20.R) )
 
-    val r4 = arrayOf( PV(8.0, 0.028.R) )
+    val r4 = arrayOf( PV(8.0, 0.028.R+1.I) )
     val rp4 = arrayOf( PV(8.0, 1.1.R) )
 
     val r56 = arrayOf( PV(15.0, 0.026.R) )

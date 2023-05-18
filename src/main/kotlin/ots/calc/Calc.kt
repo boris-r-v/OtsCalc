@@ -1,6 +1,6 @@
-package ots_calc
+package ots.calc
 
-import org.kotlinmath.*
+import ots.complex.*
 import java.lang.Exception
 import kotlin.math.abs
 import kotlin.math.max
@@ -15,7 +15,7 @@ import kotlin.math.max
  * @property numTrackMps - двумерный номеров путей для МПС (в каждой строке начальная и конечная точка)
  * @property indexMps - двумерный массив индексов узлов по сетке МПС (в каждой строке начальная и конечная точка)
  * @property aXFind - матрица коэффициентов влияния тока во всех МПС на напряжения во всех МПС Ом. По главной диагонали сами на себя
- * @property diffVolt - массивы разности напряжений от заданных токов в МПС от начальнйо до конечной точки подключения
+ * @property constU - массивы разности напряжений от заданных токов в МПС от начальнйо до конечной точки подключения
  * @property computingSettings
  * @property errorsAndMessages
  */
@@ -30,7 +30,7 @@ class Calc(
     private lateinit var numTrackMps: Array<IntArray>
     private lateinit var indexMps: Array<IntArray>
     private lateinit var aXFind: Array<Array<Real>>
-    private lateinit var diffVolt: Array<Real>
+    private lateinit var constU: Array<Real>
     private val computingSettings: ComputingSettings = ComputingSettings()
     private val errorsAndMessages: ErrorsAndMessages = ErrorsAndMessages()
     init{
@@ -133,7 +133,7 @@ class Calc(
      * @param arrXi - массив PV
      * @param coeffI - коэффициент на который умножается значение тока
      */
-    private fun valuesVectorB1node(mesh: Mesh, vectorB: Array<Real>, arrXi: Array<PV>, coeffI: Real ): Array<Real>
+    private fun valuesVectorB1node(mesh: Mesh, vectorB: Array<Real>, arrXi: Array<PV>, coeffI: Real): Array<Real>
     {
         for (i in arrXi.indices) {
             vectorB[mesh.findNearIndexOverMesh(arrXi[i].point)] += arrXi[i].value * coeffI
@@ -146,7 +146,7 @@ class Calc(
      * @param arrXi -  массив PV
      * @param coeffI  - коэффициент тока
      */
-    private fun valuesVectorB2node(mesh: Mesh, vectorB: Array<Real>, arrXi: Array<PV>, coeffI: Real  ): Array<Real>
+    private fun valuesVectorB2node(mesh: Mesh, vectorB: Array<Real>, arrXi: Array<PV>, coeffI: Real): Array<Real>
     {
         for (i in arrXi.indices) {
             val index2 = mesh.find2nearIndexOverMesh( arrXi[i].point ) // номер левого и правого узла
@@ -168,8 +168,8 @@ class Calc(
             tr.U = solve3diagBand(tr.m3db, tr.vectorB) //потенциал в рельсах в узлах сетки
             println("tr.name.u, ${tr.U.contentToString()} ")
         }
-        diffVolt = Array(mpss.size){ j -> tracks[numTrackMps[j][0]].U[indexMps[j][0]] - tracks[numTrackMps[j][1]].U[indexMps[j][1]]}
-        println("U_const:, ${diffVolt.contentDeepToString()} ")
+        constU = Array(mpss.size){ j -> tracks[numTrackMps[j][0]].U[indexMps[j][0]] - tracks[numTrackMps[j][1]].U[indexMps[j][1]]}
+        println("U_const:, ${constU.contentDeepToString()} ")
     }
 
     /**
@@ -246,7 +246,7 @@ class Calc(
             meanResidPred = meanResid //предыдущая невязка обновление
             meanResid = 0.0 //текущая невязка скидывается
             for (i in 0 until mpsSize) {
-                findU[i] = diffVolt[i] //начинаем с постоянного напряжения (от заданных источников тока ФОТ ЭПС)
+                findU[i] = constU[i] //начинаем с постоянного напряжения (от заданных источников тока ФОТ ЭПС)
                 for (j in 0 until mpsSize) {
                     findU[i] += initIPoisk[j] * aXFind[i][j] //добавляем напряжение от МПС
                 }

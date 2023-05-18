@@ -1,6 +1,5 @@
-package ots_calc
-import org.kotlinmath.*
-import java.util.Vector
+package ots.calc
+import ots.complex.*
 
 typealias Real = Complex
 /**

@@ -1,4 +1,4 @@
-package ots_calc
+package ots.calc
 
 import java.util.*
 
