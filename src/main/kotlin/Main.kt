@@ -28,10 +28,10 @@ fun main(args: Array<String>) {
     val eps5 = arrayOf( PV(12.1, 1400.R) )
 
     val emp = arrayOf<PV>()
-    val track0 = Track("0", mesh0, r13, rp13, fot0, eps0 )
+    val track0 = Track("0", mesh0, r13, rp13, fot0, eps0, null, null, r13 )
     val track1 = Track("1", mesh0, r13, rp13, emp,  eps1 )
     val track2 = Track("2", mesh0, r13, rp13, emp,  eps2 )
-    val track3 = Track("3", mesh1, r4,  rp4,  emp,  emp,  1e6.R, 1e6.R )
+    val track3 = Track("3", mesh1, r4,  rp4,  emp,  emp,  1e6.R, 1e6.R, rp4 )
     val track4 = Track("4", mesh2, r56, rp56, fot4, emp,  1e6.R )
     val track5 = Track("5", mesh2, r56, rp56, emp,  eps5, 1e6.R )
 
