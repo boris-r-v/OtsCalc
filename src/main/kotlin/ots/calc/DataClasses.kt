@@ -21,6 +21,7 @@ data class Mps( val startTrack: Track,
     val endMeshIdx = endTrack.mesh.findNearIndexOverMesh(endPoint)
 }
 
+
 /**
  * Зачение чего то в определенной точки пути
  *

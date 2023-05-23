@@ -7,9 +7,9 @@ import ots.calc.Mps
 
 fun main(args: Array<String>) {
 
-    val mesh0 = Mesh(138.0,180.0, 0.1)
-    val mesh1 = Mesh(0.0,7.0, 0.1)
-    val mesh2 = Mesh(0.0,14.0, 0.1)
+    val mesh0 = Mesh(138.0,180.0, 0.1, intArrayOf(0,1,2))
+    val mesh1 = Mesh(0.0,7.0, 0.1, intArrayOf(3))
+    val mesh2 = Mesh(0.0,14.0, 0.1, intArrayOf(4,5))
 
     val r13 = arrayOf( PV(189.0, 0.0254189.R) )
     val rp13 = arrayOf( PV(179.0, 20.R) )
@@ -28,12 +28,13 @@ fun main(args: Array<String>) {
     val eps5 = arrayOf( PV(12.1, 1400.R) )
 
     val emp = arrayOf<PV>()
-    val track0 = Track("0", mesh0, r13, rp13, fot0, eps0, null, null, r13 )
-    val track1 = Track("1", mesh0, r13, rp13, emp,  eps1 )
-    val track2 = Track("2", mesh0, r13, rp13, emp,  eps2 )
-    val track3 = Track("3", mesh1, r4,  rp4,  emp,  emp,  1e6.R, 1e6.R, rp4 )
-    val track4 = Track("4", mesh2, r56, rp56, fot4, emp,  1e6.R )
-    val track5 = Track("5", mesh2, r56, rp56, emp,  eps5, 1e6.R )
+    val mutResist=0.05.R+0.3.I // величина распредленного взимного сопротивления между путями пока константа для всех один пока Ом/км
+    val track0 = Track("0", mesh0, r13, rp13, mutResist, fot0, eps0, null, null, r13 )
+    val track1 = Track("1", mesh0, r13, rp13, mutResist, emp,  eps1 )
+    val track2 = Track("2", mesh0, r13, rp13, mutResist, emp,  eps2 )
+    val track3 = Track("3", mesh1, r4,  rp4, mutResist, emp,  emp,  1e6.R, 1e6.R, rp4 )
+    val track4 = Track("4", mesh2, r56, rp56, mutResist, fot4, emp,  1e6.R )
+    val track5 = Track("5", mesh2, r56, rp56, mutResist, emp,  eps5, 1e6.R )
 
     val mps = arrayOf( Mps(track0, track1, 140.5, 140.5, 0.9e-3.R), Mps(track1, track2, 140.5, 140.5, 0.9e-3.R),
         Mps(track0, track1, 151.5, 151.5, 1.5e-3.R ), /*МПС по главным путям 1-3*/
@@ -49,7 +50,7 @@ fun main(args: Array<String>) {
         Mps(track2, track5, 170.5, 0.0, 1.0e-5.R ), /*соединение путь гл3 (путь 2 в классе) и  отход2 путь2 (путь 5 в классе) */
         )
 
-    val calc = Compute (arrayOf(track0,track1,track2,track3,track4,track5), mps)
+    val calc = Compute (arrayOf(track0,track1,track2,track3,track4,track5), mps, arrayOf(mesh0,mesh1, mesh2))  // добавил в аргументы массив сеток
     calc.calcOts()
     println("P:, ${calc.getPOts()}")
 

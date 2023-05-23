@@ -12,6 +12,7 @@ import kotlin.math.roundToInt
 * @param startX начальная координата участка расчёта, км
 * @param endX конечная координата участка расчёта, км
 * @param dX шаг сетки, км
+* @param indexTraks номера путей, для данной сетки
 * @property meshN количество узлов сетки
 * @property X массив узлов сетки с привязкой к координатам
 */
@@ -19,11 +20,12 @@ class Mesh(
     val startX: Double,
     val endX: Double,
     val dX: Double,
+    val indexTraks: IntArray
 )
 {
     val meshN: Int = ((endX - startX) / dX).toInt() + 1
     internal val X: DoubleArray = DoubleArray(meshN){ startX+it*dX }
-    init {
+      init {
         if ( endX <= startX ) {
             Exception("Сетка [${startX}, ${endX}] границы заданы не корректно: координата правоя точки меньше координаты левой")
         }
