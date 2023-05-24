@@ -20,3 +20,7 @@ operator fun Array<Complex>.div(b: Array<Complex>): Array<Complex> {
         throw Exception("Arrays size`s different can`t produce array dividing")
     return Array(size){ get(it) / b[it] }
 }
+
+operator fun Array<Complex>.times(b: Complex): Array<Complex> {
+    return Array(size){ get(it) * b }
+}
