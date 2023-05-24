@@ -128,6 +128,8 @@ class Compute(
      * Фукция расчета коэффициентов влиияния МПС от них самих
      */
     private fun evalAXFind(): Array<Array<Real>>{
+        //-----------------ВНИМАНИЕ---------------------------
+        //необходимо расчитывать данную процедуру при нулевом наведенном напряжении от КС - это НЕ сделано
         val out = Array(mpss.size) { Array(mpss.size){0.R} }
         val current = 1000.0.R  // уловный ток МПС для определения коэффициентов влияния
         var u1: Array<Real>
@@ -209,15 +211,18 @@ class Compute(
      *  Рассчит напряжение в узлах каждого пути от постоянных источников
      */
     private fun evalKnownU() {
+        //добавляем в вектор правой части в узлы токи ФОТ и ЭПС по каждому пути
         for (tr in tracks){
             tr.vectorB = valuesVectorB1node(tr.mesh, tr.vectorB, tr.fot, (-1.0).R) // в точках ФОТ ток в одном узле с минусом
             tr.vectorB = valuesVectorB2node(tr.mesh, tr.vectorB, tr.eps, 1.0.R ) // в точках ЭПС ток  в двух ближайших узлах
-            tr.U = solve3diagBand(tr.m3db, tr.vectorB, tr.clU,tr.rlU, tr.mesh.dX) //потенциал в рельсах в узлах сетки
-            println("tr.name.u, ${tr.U.contentToString()} ")
+         }
+        // производим расчет напряжений и тококв в группах путей по единой сетке
+        for (msh in meshes){
+            callTracksUnionMesh(msh.indexTraks)
         }
+        //фиксируем напряжения на МПС от заданных источников тока
         knownU = Array(mpss.size){ i -> mpss[i].startTrack.U[mpss[i].startMeshIdx] - mpss[i].endTrack.U[mpss[i].endMeshIdx] }
         println("U_const:, ${knownU.contentDeepToString()} ")
-
     }
 
     /**
