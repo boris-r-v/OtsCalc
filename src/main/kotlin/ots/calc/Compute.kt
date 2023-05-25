@@ -2,7 +2,6 @@ package ots.calc
 
 import ots.complex.*
 import java.lang.Exception
-import java.util.Arrays
 import kotlin.math.abs
 import kotlin.math.max
 
@@ -32,6 +31,8 @@ class Compute(
     private var mpsI: Array<Real> = Array(1) { 0.R }
     init{
         verifyData(verifyI = true, verifyXfotMps = true, verifyXeps = true) //FIX ME - убрать эту валлидацию в конструкторы объектов с киданием исключений если что-то не так
+        /*Установим массив наведенных напряжений из исходных данных после срасчета матрицы влияним МПС друг на друга*/
+        tracks.forEach { it.setClU() }
     }
 
     /**
@@ -113,7 +114,7 @@ class Compute(
                     if (tr != tr2) {  // условие путь не наводит сам на себя
                         //FIX ME - тут должно быть умнлжение тока на сопротивление же а не суммирования
                         // tr.rlU = sumComplexArray(tr.rlU, sumComplexArray(tr2.I, tr2.mutResist)) // добавка на iый от jого
-                        tr.rlU = tr.rlU + tr2.I * tr2.mutResist
+                        tr.rlU = tr.rlU + tr2.I * tr2.rlR
                     }
                 }
             }
@@ -136,8 +137,6 @@ class Compute(
 
     /**
      * Фукция расчета коэффициентов влиияния МПС от них самих
-     * -----------------ВНИМАНИЕ---------------------------
-     * //необходимо расчитывать данную процедуру при нулевом наведенном напряжении от КС - это НЕ сделано
      */
     private fun evalAXFind(): Array<Array<Real>>{
         val out = Array(mpss.size) { Array(mpss.size){0.R} }
