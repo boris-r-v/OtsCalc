@@ -35,7 +35,6 @@ class Track(
     val mutResist: Real,
     val fot: Array<PV>,
     var eps: Array<PV>,
-
     iRv0 : Real? = null,
     iRvn : Real? = null,
     val iclU: Array<PV>? = null,
@@ -47,16 +46,18 @@ class Track(
     private val rpDs = mesh.distributeFunctionOverMesh( rp )
     internal val Rv0: Real = iRv0 ?: sqrt(rDs.first() * rpDs.first())
     internal val Rvn: Real = iRvn ?: sqrt(rDs.last() * rpDs.last())
-    internal val clU: Array<Real> = if (iclU != null ) mesh.distributeFunctionOverMesh( iclU ) else Array(mesh.size()){0.R}
+    internal var clU: Array<Real> = if (iclU != null ) mesh.distributeFunctionOverMesh( iclU ) else Array(mesh.size()){0.R}
     //internal val clU: Array<Real> = mesh.distributeFunctionOverMesh( iclU? ) ?: Array(mesh.size()){0.R}
-
     internal var rlU: Array<Real> = Array(mesh.size()){0.R}
+
     internal val m3db: Array<Array<Real>> = mesh.create3diagMatrixBand(this)
     internal var vectorB: Array<Real> = Array(mesh.size()){0.R}
     internal var U: Array<Real> = Array(mesh.size()){0.R}
     internal var I: Array<Real> = Array(mesh.size()){0.R}
     internal var Ignd: Array<Real> = Array(mesh.size()){0.R}
-
+    init {
+        mesh.addTrack(this)
+    }
     /**
      * Провепрят постоянный ли тяговый ток, считаем что если напряжение влияния не заданы то ток постоянны
      * Спорное утверджение но метод пригодится для исключения подбора напряжения влияние рельс-ресль в случае когда

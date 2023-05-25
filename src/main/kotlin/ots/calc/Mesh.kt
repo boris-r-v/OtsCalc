@@ -12,7 +12,7 @@ import kotlin.math.roundToInt
 * @param startX начальная координата участка расчёта, км
 * @param endX конечная координата участка расчёта, км
 * @param dX шаг сетки, км
-* @param indexTraks номера путей, для данной сетки
+* @property traks пути принадлежащие этой сетке
 * @property meshN количество узлов сетки
 * @property X массив узлов сетки с привязкой к координатам
 */
@@ -20,10 +20,10 @@ class Mesh(
     val startX: Double,
     val endX: Double,
     val dX: Double,
-    val indexTraks: IntArray
 )
 {
-    val meshN: Int = ((endX - startX) / dX).toInt() + 1
+    internal val tracks = arrayListOf<Track>()
+    internal val meshN: Int = ((endX - startX) / dX).toInt() + 1
     internal val X: DoubleArray = DoubleArray(meshN){ startX+it*dX }
       init {
         if ( endX <= startX ) {
@@ -32,6 +32,12 @@ class Mesh(
         if ( meshN <= 2 ) {
             Exception("Сетка [${endX}, ${endX}] содержит менее трёх узлов, исправте настройки")
         }
+    }
+    /**
+     * Добавляет путь с список путей принадлежащих этой сетке
+     */
+    fun addTrack( tr: Track){
+        tracks.add(tr)
     }
     /**
      * Возвращает количесво услов сетки

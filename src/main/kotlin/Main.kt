@@ -5,11 +5,16 @@ import ots.calc.Track
 import ots.calc.Compute
 import ots.calc.Mps
 
+
+fun create_ots ( json: String ){
+
+}
+
 fun main(args: Array<String>) {
 
-    val mesh0 = Mesh(138.0,180.0, 0.1, intArrayOf(0,1,2))
-    val mesh1 = Mesh(0.0,7.0, 0.1, intArrayOf(3))
-    val mesh2 = Mesh(0.0,14.0, 0.1, intArrayOf(4,5))
+    val mesh0 = Mesh(138.0,180.0, 0.1)
+    val mesh1 = Mesh(0.0,7.0, 0.1)
+    val mesh2 = Mesh(0.0,14.0, 0.1)
 
     val r13 = arrayOf( PV(189.0, 0.0254189.R) )
     val rp13 = arrayOf( PV(179.0, 20.R) )

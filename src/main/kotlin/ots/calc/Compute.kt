@@ -75,10 +75,11 @@ class Compute(
      * Пересчитываются наводимые от токов в пути этой группы
      * @param indexTraсks вектор индексов путей с общей сеткой
      */
-    private fun callTracksUnionMesh(indexTraсks: IntArray) {
+    private fun callTracksUnionMesh(mesh: Mesh ) {
         var avrAbsU: Double = 0.0                       // средне напряжение по всем путям группы на текущей итерации
         var avrAbsUold: Double = 0.0                    // тоже самое на итерации назад
-        val N: Int = tracks[indexTraсks[0]].U.size      // число элементов массива = числу узлов сетки
+        //val N: Int = tracks[indexTraсks[0]].U.size      // число элементов массива = числу узлов сетки
+        val N: Int = mesh.size()                          // число элементов массива = числу узлов сетки
         val maxIter: Int = 5                            // максим число итераций
         var bIter: Boolean=true                         // признак итерации не исчерпаны
         var bNotConverg: Boolean=true                   // признак сходимость не достигнута
@@ -87,33 +88,38 @@ class Compute(
         var Converg: Double                             // предел относительная сходимость среднего нааряжения
 
         // обнуление всех наводимых напряжений от других путей в группе
-        for (i in indexTraсks) {
-            tracks[i].rlU = Array(tracks[i].rlU.size) { 0.R }
+        for (tr in mesh.tracks) {
+            for ( i in tr.rlU.indices ){
+                tr.rlU[i] = 0.0.R
+            }
         }
         //расчет напряжений в рельсах и токов при начальных условиях
-        for (i in indexTraсks) {
-            tracks[i].U = solve3diagBand(tracks[i].m3db, tracks[i].vectorB, tracks[i].clU, tracks[i].rlU, tracks[i].mesh.dX) // напряжение в рельсах
-            evalItrack(tracks[i])    // ток в рельсах
-            avrAbsU += sumAbsElementComlexArray(tracks[i].U) / N  // добавляем среднее напряжение в данном пути по модулю
+        for (tr in mesh.tracks ) {
+            tr.U = solve3diagBand(tr.m3db, tr.vectorB, tr.clU, tr.rlU, tr.mesh.dX) // напряжение в рельсах
+            evalItrack( tr )    // ток в рельсах
+            avrAbsU += sumAbsElementComlexArray( tr.U ) / N  // добавляем среднее напряжение в данном пути по модулю
         }
         avrAbsUold=avrAbsU                  // принимаем это за значение на прошлой итерации
         // расчет напряжений и токов по условию пока не будет исчерпано число итераций или не достигнута сходимость
         while (bIter and bNotConverg) {
             // расчет наведенных напряжений вдоль пути от токов в рельсах в группе
-            for (i in indexTraсks) {
-                tracks[i].rlU = Array(tracks[i].rlU.size) { 0.R } //обнуляем у данного пути наводимые напряжения от других путей в группе
-                for (j in indexTraсks) {
-                    if (i != j) {  // условие путь не наводит сам на себя
-                        tracks[i].rlU = sumComplexArray(tracks[i].rlU, sumComplexArray(tracks[j].I, tracks[j].mutResist)) // добавка на iый от jого
+            for ( tr in mesh.tracks ) {
+                //tr.rlU = Array(tracks[i].rlU.size) { 0.R } //обнуляем у данного пути наводимые напряжения от других путей в группе
+                for ( i in tr.rlU.indices ){//обнуляем у данного пути наводимые напряжения от других путей в группе
+                    tr.rlU[i] = 0.0.R
+                }
+                for (tr2 in mesh.tracks) {
+                    if (tr != tr2) {  // условие путь не наводит сам на себя
+                        tr.rlU = sumComplexArray(tr.rlU, sumComplexArray(tr2.I, tr2.mutResist)) // добавка на iый от jого
                     }
                 }
             }
             //расчет напряжений в рельсах и токов при текущих условиях
             avrAbsU=0.0                                                                                                          //среднее значение модулей обнуляям
-            for (i in indexTraсks) {
-                tracks[i].U = solve3diagBand(tracks[i].m3db, tracks[i].vectorB, tracks[i].clU, tracks[i].rlU, tracks[i].mesh.dX) // напряжение в рельсах
-                evalItrack(tracks[i])                                                                                           // ток в рельсах
-                avrAbsU += sumAbsElementComlexArray(tracks[i].U) / N                                                               // добавляем среднее напряжение в данном пути по модулю
+            for (tr in mesh.tracks) {
+                tr.U = solve3diagBand(tr.m3db, tr.vectorB, tr.clU, tr.rlU, tr.mesh.dX) // напряжение в рельсах
+                evalItrack( tr )                                                                                           // ток в рельсах
+                avrAbsU += sumAbsElementComlexArray(tr.U) / N                                                               // добавляем среднее напряжение в данном пути по модулю
             }
             //заканчиваем цикл обновлением параметров
             Converg=abs(avrAbsU-avrAbsUold)/(avrAbsU+avrAbsUold) // относительная сходимость по среднему абсолютному напряжению на этом и предыдущем шаге
@@ -143,9 +149,9 @@ class Compute(
         mpss.forEachIndexed { i, mps ->
             mps.startTrack.vectorB[mps.startMeshIdx] = -current // задаём ток в начальной точке подключения в данном пути
             mps.endTrack.vectorB[mps.endMeshIdx] = current // задаём ток в конечной точке подключения в данном пути
-            callTracksUnionMesh(mps.startTrack.mesh.indexTraks) //проводим расчёт в группе путей с начальной точкой подключения МПС
-            if (mps.startTrack.mesh.indexTraks!=mps.endTrack.mesh.indexTraks){ //если группа путей для конечной точки подключения МПС не совпдает с группой начальной точки
-                callTracksUnionMesh(mps.endTrack.mesh.indexTraks) //проводим расчёт в группе путей с конечной точкой  подключения МПС
+            callTracksUnionMesh( mps.startTrack.mesh ) //проводим расчёт в группе путей с начальной точкой подключения МПС
+            if (mps.startTrack.mesh != mps.endTrack.mesh ){ //если группа путей для конечной точки подключения МПС не совпдает с группой начальной точки
+                callTracksUnionMesh( mps.endTrack.mesh ) //проводим расчёт в группе путей с конечной точкой  подключения МПС
             }
             u1 = mps.startTrack.U //снимаем напряжение по сетке в пути для начальной точки подключения МПС
             u2 = mps.endTrack.U  //снимаем напряжение по сетке в пути для конечной точки подключения МПС
@@ -166,11 +172,16 @@ class Compute(
                 }
                 out[i][j] = a1XFind[i][j] - a2XFind[i][j]
             }
-            for (k in mps.startTrack.mesh.indexTraks){                          //обнуляем массивы напряжений в группе путей началльной точки подключения МПС
-                mps.startTrack.U=Array<Real>(mps.startTrack.mesh.meshN){0.R}
+            for ( tr in mps.startTrack.mesh.tracks ){                          //обнуляем массивы напряжений в группе путей началльной точки подключения МПС
+                for ( i in tr.U.indices ){
+                    tr.U[i] = 0.0.R
+                }
             }
-            if (mps.startTrack.mesh.indexTraks!=mps.endTrack.mesh.indexTraks){ //если группа путей для конечной точки подключения МПС не совпдает с группой начальной точки
-                mps.endTrack.U=Array<Real>(mps.startTrack.mesh.meshN){0.R} //обнуляем массивы напряжений в путей с конечной точкой  подключения МПС
+            //FIX ME - уточнить допустмо ли тут проверять на совпадение сеток,
+            if (mps.startTrack.mesh != mps.endTrack.mesh ){ // если группа путей для конечной точки подключения МПС не совпдает с группой начальной точки
+                for ( i in mps.endTrack.U.indices){
+                    mps.endTrack.U[i] = 0.0.R
+                }
             }
         }
         return out
@@ -217,8 +228,8 @@ class Compute(
             tr.vectorB = valuesVectorB2node(tr.mesh, tr.vectorB, tr.eps, 1.0.R ) // в точках ЭПС ток  в двух ближайших узлах
          }
         // производим расчет напряжений и тококв в группах путей по единой сетке
-        for (msh in meshes){
-            callTracksUnionMesh(msh.indexTraks)
+        for (mesh in meshes){
+            callTracksUnionMesh( mesh )
         }
         //фиксируем напряжения на МПС от заданных источников тока
         knownU = Array(mpss.size){ i -> mpss[i].startTrack.U[mpss[i].startMeshIdx] - mpss[i].endTrack.U[mpss[i].endMeshIdx] }
@@ -339,7 +350,7 @@ class Compute(
                 mps.endTrack.vectorB[mps.endMeshIdx] += mpsI[i]
         }
         //потенциал и токи в рельсах в рельсах для всех групп путей с общими сетками
-        meshes.forEach { msh->callTracksUnionMesh(msh.indexTraks) }
+        meshes.forEach { callTracksUnionMesh( it ) }
          //расчёт токов в земле в узлах сетки для каждого пути
         for (tr in tracks) {
             evalIgndTrack(tr) // ток в земле
