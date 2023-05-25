@@ -2,6 +2,7 @@ package ots.calc
 
 import ots.complex.*
 import java.lang.Exception
+import java.util.Arrays
 import kotlin.math.abs
 import kotlin.math.max
 
@@ -78,8 +79,7 @@ class Compute(
     private fun callTracksUnionMesh(mesh: Mesh ) {
         var avrAbsU: Double = 0.0                       // средне напряжение по всем путям группы на текущей итерации
         var avrAbsUold: Double = 0.0                    // тоже самое на итерации назад
-        //val N: Int = tracks[indexTraсks[0]].U.size      // число элементов массива = числу узлов сетки
-        val N: Int = mesh.size()                          // число элементов массива = числу узлов сетки
+        //val N: Int = mesh.size()                          // число элементов массива = числу узлов сетки
         val maxIter: Int = 5                            // максим число итераций
         var bIter: Boolean=true                         // признак итерации не исчерпаны
         var bNotConverg: Boolean=true                   // признак сходимость не достигнута
@@ -97,7 +97,8 @@ class Compute(
         for (tr in mesh.tracks ) {
             tr.U = solve3diagBand(tr.m3db, tr.vectorB, tr.clU, tr.rlU, tr.mesh.dX) // напряжение в рельсах
             evalItrack( tr )    // ток в рельсах
-            avrAbsU += sumAbsElementComlexArray( tr.U ) / N  // добавляем среднее напряжение в данном пути по модулю
+            //avrAbsU += sumAbsElementComlexArray( tr.U ) / N  // добавляем среднее напряжение в данном пути по модулю
+            avrAbsU += tr.U.modAvr()    // добавляем среднее напряжение в данном пути по модулю
         }
         avrAbsUold=avrAbsU                  // принимаем это за значение на прошлой итерации
         // расчет напряжений и токов по условию пока не будет исчерпано число итераций или не достигнута сходимость
@@ -110,16 +111,19 @@ class Compute(
                 }
                 for (tr2 in mesh.tracks) {
                     if (tr != tr2) {  // условие путь не наводит сам на себя
-                        tr.rlU = sumComplexArray(tr.rlU, sumComplexArray(tr2.I, tr2.mutResist)) // добавка на iый от jого
+                        //FIX ME - тут должно быть умнлжение тока на сопротивление же а не суммирования
+                        // tr.rlU = sumComplexArray(tr.rlU, sumComplexArray(tr2.I, tr2.mutResist)) // добавка на iый от jого
+                        tr.rlU = tr.rlU + tr2.I * tr2.mutResist
                     }
                 }
             }
             //расчет напряжений в рельсах и токов при текущих условиях
-            avrAbsU=0.0                                                                                                          //среднее значение модулей обнуляям
+            avrAbsU=0.0    //среднее значение модулей обнуляям
             for (tr in mesh.tracks) {
                 tr.U = solve3diagBand(tr.m3db, tr.vectorB, tr.clU, tr.rlU, tr.mesh.dX) // напряжение в рельсах
-                evalItrack( tr )                                                                                           // ток в рельсах
-                avrAbsU += sumAbsElementComlexArray(tr.U) / N                                                               // добавляем среднее напряжение в данном пути по модулю
+                evalItrack( tr )      // ток в рельсах
+                //avrAbsU += sumAbsElementComlexArray(tr.U) / N  // добавляем среднее напряжение в данном пути по модулю
+                avrAbsU += tr.U.modAvr() // добавляем среднее напряжение в данном пути по модулю
             }
             //заканчиваем цикл обновлением параметров
             Converg=abs(avrAbsU-avrAbsUold)/(avrAbsU+avrAbsUold) // относительная сходимость по среднему абсолютному напряжению на этом и предыдущем шаге

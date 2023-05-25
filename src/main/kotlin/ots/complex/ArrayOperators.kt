@@ -24,3 +24,18 @@ operator fun Array<Complex>.div(b: Array<Complex>): Array<Complex> {
 operator fun Array<Complex>.times(b: Complex): Array<Complex> {
     return Array(size){ get(it) * b }
 }
+operator fun Array<Complex>.plus(b: Complex): Array<Complex> {
+    return Array(size){ get(it) + b }
+}
+
+/**
+ * Сума модулей элементов массива
+ */
+fun Array<Complex>.modSum(): Double {
+    var out = 0.0
+    forEach { out += it.mod }
+    return out
+}
+fun Array<Complex>.modAvr(): Double {
+    return modSum()/size
+}
