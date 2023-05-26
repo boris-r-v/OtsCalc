@@ -33,13 +33,17 @@ fun main(args: Array<String>) {
     val eps5 = arrayOf( PV(12.1, 1400.R) )
 
     val emp = arrayOf<PV>()
-    val mutResist=0.05.R+0.3.I // величина распредленного взимного сопротивления между путями пока константа для всех один пока Ом/км
-    val track0 = Track("0", mesh0, r13, rp13, mutResist, fot0, eps0, null, null, r13 )
-    val track1 = Track("1", mesh0, r13, rp13, mutResist, emp,  eps1 )
-    val track2 = Track("2", mesh0, r13, rp13, mutResist, emp,  eps2 )
-    val track3 = Track("3", mesh1, r4,  rp4, mutResist, emp,  emp,  1e6.R, 1e6.R, rp4 )
-    val track4 = Track("4", mesh2, r56, rp56, mutResist, fot4, emp,  1e6.R )
-    val track5 = Track("5", mesh2, r56, rp56, mutResist, emp,  eps5, 1e6.R )
+    /**
+     *     Если поставить сопротивление 0.0.R то расчет совпадает с постоянным током если пос
+     *     Если поставить 1мкОм - то тоже почти совпадает
+     */
+    val rpRes=0.0000001.R//+0.3.I
+    val track0 = Track("0", mesh0, r13, rp13, rpRes, fot0, eps0, null, null, null )
+    val track1 = Track("1", mesh0, r13, rp13, rpRes, emp,  eps1 )
+    val track2 = Track("2", mesh0, r13, rp13, rpRes, emp,  eps2 )
+    val track3 = Track("3", mesh1, r4,  rp4, rpRes, emp,  emp,  1e6.R, 1e6.R, null )
+    val track4 = Track("4", mesh2, r56, rp56, rpRes, fot4, emp,  1e6.R )
+    val track5 = Track("5", mesh2, r56, rp56, rpRes, emp,  eps5, 1e6.R )
 
     val mps = arrayOf( Mps(track0, track1, 140.5, 140.5, 0.9e-3.R), Mps(track1, track2, 140.5, 140.5, 0.9e-3.R),
         Mps(track0, track1, 151.5, 151.5, 1.5e-3.R ), /*МПС по главным путям 1-3*/

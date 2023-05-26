@@ -295,8 +295,11 @@ interface Complex {
                 val reFormatted = if (format.isEmpty()) mod.toString() else String.format(locale, format, mod)
                 val imFormatted = if (format.isEmpty()) arg.toString() else String.format(locale, format, arg)
                 if (mod != 0.0) {
-                    if (arg == 0.0) reFormatted
-                    else "${reFormatted}exp(${imFormatted})"
+                    when(arg){
+                        0.0 -> reFormatted
+                        PI -> "-${reFormatted}"
+                        else ->"${reFormatted}exp(${imFormatted})"
+                    }
                 } else "0.0"
             }
         }

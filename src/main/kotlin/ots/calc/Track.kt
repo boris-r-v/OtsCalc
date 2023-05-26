@@ -37,7 +37,7 @@ class Track(
     var eps: Array<PV>,
     iRv0 : Real? = null,
     iRvn : Real? = null,
-    val iclU: Array<PV>? = null,
+    private val iclU: Array<PV>? = null,
     val zaz: Array<PV> = arrayOf<PV>(),
     val Rtch: Array<PV> = arrayOf<PV>(),
     )

@@ -2,6 +2,7 @@ package ots.calc
 
 import ots.complex.*
 import java.lang.Exception
+import java.util.Arrays
 import kotlin.math.abs
 import kotlin.math.max
 
@@ -114,6 +115,7 @@ class Compute(
                     if (tr != tr2) {  // условие путь не наводит сам на себя
                         //FIX ME - тут должно быть умнлжение тока на сопротивление же а не суммирования
                         // tr.rlU = sumComplexArray(tr.rlU, sumComplexArray(tr2.I, tr2.mutResist)) // добавка на iый от jого
+                        println("Track2Track,\ntrack${tr.name}:, ${Arrays.deepToString(tr.rlU)}\ntrack${tr2.name}:, ${Arrays.deepToString(tr2.I * tr2.rlR)}")
                         tr.rlU = tr.rlU + tr2.I * tr2.rlR
                     }
                 }

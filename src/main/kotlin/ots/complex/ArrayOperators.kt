@@ -29,13 +29,31 @@ operator fun Array<Complex>.plus(b: Complex): Array<Complex> {
 }
 
 /**
- * Сума модулей элементов массива
+ * Сумма модулей элементов массива
  */
 fun Array<Complex>.modSum(): Double {
     var out = 0.0
     forEach { out += it.mod }
     return out
 }
+/**
+ * Среднее значение модуля массива, без учета угла
+ */
 fun Array<Complex>.modAvr(): Double {
     return modSum()/size
 }
+/**
+ * Сумма действиетльных частей массива
+ */
+fun Array<Complex>.reSum(): Double {
+    var out = 0.0
+    forEach { out += it.re }
+    return out
+}
+/**
+ * Среднее действительных частей
+ */
+fun Array<Complex>.reAvr(): Double {
+    return reSum()/size
+}
+
