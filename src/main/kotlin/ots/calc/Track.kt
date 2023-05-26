@@ -42,6 +42,7 @@ class Track(
     val Rtch: Array<PV> = arrayOf<PV>(),
     )
 {
+
     private val rDs = mesh.distributeFunctionOverMesh( r )
     private val rpDs = mesh.distributeFunctionOverMesh( rp )
     internal val Rv0: Real = iRv0 ?: sqrt(rDs.first() * rpDs.first())
@@ -82,3 +83,14 @@ class Track(
         clU = mesh.distributeFunctionOverMesh( up )
     }
 }
+
+/**
+ * Заготовка под различные проводимости
+ *      свойство пути: private val rlRdp: MutableMap<Track, Array<Real>>
+ *      используем так: tr.rlU = tr.rlU + tr2.I * tr2.rlRdp[tr]
+ * Вопросы: как задать взаимные междупутные сопротивления в конструкторе
+ *      1. Как идентифицировать между какими путями заданы проводимости
+ *  Можно проводить идентификацию через имена путей, но тогда они должны быть заданы из исходных данных
+ *      2.
+ *
+ */

@@ -16,6 +16,10 @@ fun main(args: Array<String>) {
     val mesh1 = Mesh(0.0,7.0, 0.1)
     val mesh2 = Mesh(0.0,14.0, 0.1)
 
+    val u0 = arrayOf( PV(138.0, 1.0.R) )
+    val u1 = arrayOf( PV(0.0, 0.0.R) )
+    val u2 = arrayOf( PV(0.0, 0.0.R) )
+
     val r13 = arrayOf( PV(189.0, 0.0254189.R) )
     val rp13 = arrayOf( PV(179.0, 20.R) )
 
@@ -38,12 +42,12 @@ fun main(args: Array<String>) {
      *     Если поставить 1мкОм - то тоже почти совпадает
      */
     val rpRes=0.0000001.R//+0.3.I
-    val track0 = Track("0", mesh0, r13, rp13, rpRes, fot0, eps0, null, null, null )
-    val track1 = Track("1", mesh0, r13, rp13, rpRes, emp,  eps1 )
-    val track2 = Track("2", mesh0, r13, rp13, rpRes, emp,  eps2 )
-    val track3 = Track("3", mesh1, r4,  rp4, rpRes, emp,  emp,  1e6.R, 1e6.R, null )
-    val track4 = Track("4", mesh2, r56, rp56, rpRes, fot4, emp,  1e6.R )
-    val track5 = Track("5", mesh2, r56, rp56, rpRes, emp,  eps5, 1e6.R )
+    val track0 = Track("0", mesh0, r13, rp13, rpRes, fot0, eps0, null, null, u0 )
+    val track1 = Track("1", mesh0, r13, rp13, rpRes, emp,  eps1,  null, null, u0)
+    val track2 = Track("2", mesh0, r13, rp13, rpRes, emp,  eps2, null, null, u0)
+    val track3 = Track("3", mesh1, r4,  rp4, rpRes, emp,  emp,  1e6.R, 1e6.R, u1 )
+    val track4 = Track("4", mesh2, r56, rp56, rpRes, fot4, emp,  1e6.R, null, u2 )
+    val track5 = Track("5", mesh2, r56, rp56, rpRes, emp,  eps5, 1e6.R, null, u2 )
 
     val mps = arrayOf( Mps(track0, track1, 140.5, 140.5, 0.9e-3.R), Mps(track1, track2, 140.5, 140.5, 0.9e-3.R),
         Mps(track0, track1, 151.5, 151.5, 1.5e-3.R ), /*МПС по главным путям 1-3*/
