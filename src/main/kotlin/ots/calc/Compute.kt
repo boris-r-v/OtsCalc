@@ -25,7 +25,7 @@ class Compute(
     )
 {
     private val aXFind: Array<Array<Real>> = evalAXFind()
-    private val computingSettings: ComputingSettings = ComputingSettings()
+    public val computingSettings: ComputingSettings = ComputingSettings()
     private val errorsAndMessages: ErrorsAndMessages = ErrorsAndMessages()
 
     private var knownU: Array<Real> = Array(1) { 0.R }
@@ -85,11 +85,11 @@ class Compute(
         var avrAbsU: Double = 0.0                       // средне напряжение по всем путям группы на текущей итерации
         var avrAbsUold: Double = 0.0                    // тоже самое на итерации назад
         //val N: Int = mesh.size()                          // число элементов массива = числу узлов сетки
-        val maxIter: Int = 5                            // максим число итераций
+        val maxIter: Int = 10                            // максим число итераций
         var bIter: Boolean=true                         // признак итерации не исчерпаны
         var bNotConverg: Boolean=true                   // признак сходимость не достигнута
         var k: Int =0                                   // счетчик итераций
-        val LimitConverg: Double =0.03                  // предел относительная сходимость среднего нааряжения на текущей и предудущей итерации
+        val LimitConverg: Double =0.01                  // предел относительная сходимость среднего нааряжения на текущей и предудущей итерации
         var Converg: Double                             // предел относительная сходимость среднего нааряжения
 
         // обнуление всех наводимых напряжений от других путей в группе
@@ -121,7 +121,7 @@ class Compute(
                         //FIX ME - тут должно быть умнлжение тока на сопротивление же а не суммирования
                         // tr.rlU = sumComplexArray(tr.rlU, sumComplexArray(tr2.I, tr2.mutResist)) // добавка на iый от jого
                         //println("Track2Track,\ntrack${tr.name}:, ${Arrays.deepToString(tr.rlU)}\ntrack${tr2.name}:, ${Arrays.deepToString(tr2.I * tr2.rlR)}")
-                        tr.rlU = tr.rlU + tr2.I * tr2.rlR
+                        tr.rlU = tr.rlU - tr2.I * tr2.rlR
                         println(tr2.name+"->"+tr.name+", Eots_avg="+tr.rlU.modAvr()+", путь_"+tr2.name+" I_avg="+tr2.I.modAvr())
                     }
                 }

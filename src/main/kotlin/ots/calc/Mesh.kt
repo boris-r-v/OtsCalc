@@ -24,7 +24,7 @@ class Mesh(
 {
     internal val tracks = arrayListOf<Track>()
     internal val meshN: Int = ((endX - startX) / dX).toInt() + 1
-    internal val X: DoubleArray = DoubleArray(meshN){ startX+it*dX }
+    internal val X: Array<Double> = Array<Double>(meshN){ startX+it*dX }
       init {
         if ( endX <= startX ) {
             Exception("Сетка [${startX}, ${endX}] границы заданы не корректно: координата правоя точки меньше координаты левой")

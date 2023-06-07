@@ -17,17 +17,17 @@ fun main(args: Array<String>) {
     val mesh1 = Mesh(0.0,7.0, 0.1)
     val mesh2 = Mesh(0.0,14.0, 0.1)
 
-    val u0 = arrayOf( PV(138.0, 0.0.R+0.I) )
+    val u0 = arrayOf( PV(0.0, 0.0.R) )
     val u1 = arrayOf( PV(0.0, 0.0.R ))
     val u2 = arrayOf( PV(0.0, 0.0.R) )
 
-    val r13 = arrayOf( PV(189.0, 0.0254189.R+0.7.I) )
+    val r13 = arrayOf( PV(189.0, 0.12615.R+0.5871.I) )
     val rp13 = arrayOf( PV(179.0, 20.R) )
 
-    val r4 = arrayOf( PV(8.0, 0.028.R) )
+    val r4 = arrayOf( PV(8.0, 0.12615.R+0.5871.I) )
     val rp4 = arrayOf( PV(8.0, 1.1.R) )
 
-    val r56 = arrayOf( PV(15.0, 0.026.R) )
+    val r56 = arrayOf( PV(15.0, 0.12615.R+0.5871.I) )
     val rp56 = arrayOf( PV(15.0, 10.R) )
 
     val fot0 = arrayOf( PV(140.5, 2300.R), PV(160.2, 2400.R), PV(176.7, 3000.R) )
@@ -42,7 +42,7 @@ fun main(args: Array<String>) {
      *     Если поставить сопротивление 0.0.R то расчет совпадает с постоянным током если пос
      *     Если поставить 1мкОм - то тоже почти совпадает
      */
-    val rpRes=0.02.R+0.3.I
+    val rpRes=0.04.R+0.3.I
     val track0 = Track("0", mesh0, r13, rp13, rpRes, fot0, eps0, null, null, u0 )
     val track1 = Track("1", mesh0, r13, rp13, rpRes, emp,  eps1,  null, null, u0)
     val track2 = Track("2", mesh0, r13, rp13, rpRes, emp,  eps2, null, null, u0)
@@ -69,23 +69,22 @@ fun main(args: Array<String>) {
 
     val calc = Compute (arrayOf(track0,track1,track2,track3,track4,track5), mps, arrayOf(mesh0,mesh1, mesh2))  // добавил в аргументы массив сеток
     calc.calcOts()
-    println("track0.U: ${Arrays.deepToString(track0.U)} ")
-
-/*
-    println("track0.U: ${Arrays.deepToString(track0.U)} ")
-    println("track1.U: ${Arrays.deepToString(track1.U)} ")
-    println("track2.U: ${Arrays.deepToString(track2.U)} ")
-    println("track3.U: ${Arrays.deepToString(track3.U)} ")
-    println("track4.U: ${Arrays.deepToString(track4.U)} ")
-    println("track5.U: ${Arrays.deepToString(track5.U)} ")
-
-    println("track0.I: ${Arrays.deepToString(track0.I)} ")
-    println("track1.I: ${Arrays.deepToString(track1.I)} ")
-    println("track2.I: ${Arrays.deepToString(track2.I)} ")
-    println("track3.I: ${Arrays.deepToString(track3.I)} ")
-    println("track4.I: ${Arrays.deepToString(track4.I)} ")
-    println("track5.I: ${Arrays.deepToString(track5.I)} ")
-
-*/
+    println(calc.computingSettings.currentStateSolver[0])
+    println(calc.computingSettings.currentStateSolver[1])
+    println(calc.computingSettings.currentStateSolver[2])
+    println("track0.I: ${Arrays.deepToString(track0.I.mod())} ")
+    println("track1.I: ${Arrays.deepToString(track1.I.mod())} ")
+    println("track2.I: ${Arrays.deepToString(track2.I.mod())} ")
+    println(Arrays.deepToString(mesh0.X))
+//    println("track3.U: ${Arrays.deepToString(track3.U)} ")
+//    println("track4.U: ${Arrays.deepToString(track4.U)} ")
+//    println("track5.U: ${Arrays.deepToString(track5.U)} ")
+//
+//    println("track0.I: ${Arrays.deepToString(track0.I)} ")
+//    println("track1.I: ${Arrays.deepToString(track1.I)} ")
+//    println("track2.I: ${Arrays.deepToString(track2.I)} ")
+//    println("track3.I: ${Arrays.deepToString(track3.I)} ")
+//    println("track4.I: ${Arrays.deepToString(track4.I)} ")
+//    println("track5.I: ${Arrays.deepToString(track5.I)} ")
 
 }
