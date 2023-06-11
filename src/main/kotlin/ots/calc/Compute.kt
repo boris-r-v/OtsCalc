@@ -25,10 +25,10 @@ class Compute(
     private val relres: RelativeResist,
     )
 {
-    private val aXFind: Array<Array<Real>> = evalAXFind()
-    public val computingSettings: ComputingSettings = ComputingSettings()
+    internal val computingSettings: ComputingSettings = ComputingSettings()
     private val errorsAndMessages: ErrorsAndMessages = ErrorsAndMessages()
 
+    private val aXFind: Array<Array<Real>> = evalAXFind()
     private var knownU: Array<Real> = Array(1) { 0.R }
     private var mpsI: Array<Real> = Array(1) { 0.R }
     init{
@@ -85,12 +85,9 @@ class Compute(
         //FIX ME - kclU -это костыли лучше в будущем заменить
         var avrAbsU: Double = 0.0                       // средне напряжение по всем путям группы на текущей итерации
         var avrAbsUold: Double = 0.0                    // тоже самое на итерации назад
-        //val N: Int = mesh.size()                          // число элементов массива = числу узлов сетки
-        val maxIter: Int = 10                            // максим число итераций
         var bIter: Boolean=true                         // признак итерации не исчерпаны
         var bNotConverg: Boolean=true                   // признак сходимость не достигнута
         var k: Int =0                                   // счетчик итераций
-        val LimitConverg: Double =0.01                  // предел относительная сходимость среднего нааряжения на текущей и предудущей итерации
         var Converg: Double                             // предел относительная сходимость среднего нааряжения
 
         // обнуление всех наводимых напряжений от других путей в группе
@@ -137,8 +134,8 @@ class Compute(
             }
             //заканчиваем цикл обновлением параметров
             Converg=abs(avrAbsU-avrAbsUold)/(avrAbsU+avrAbsUold) // относительная сходимость по среднему абсолютному напряжению на этом и предыдущем шаге
-            bNotConverg=(Converg>LimitConverg)  // признак сходимость не достигнута обновляем
-            bIter=(k<maxIter)                   // признак итерации не исчерпаны  обновляем
+            bNotConverg=( Converg > computingSettings.relativeConvergence )  // признак сходимость не достигнута обновляем
+            bIter=( k < computingSettings.maxRelativeIter )                 // признак итерации не исчерпаны  обновляем
             k+=1                                 // счетчик итераций
             avrAbsUold=avrAbsU                  // обновляем значение на прошлой итерации
             println("k="+k+", avrAbsU="+avrAbsU+", Converg="+Converg)
