@@ -42,12 +42,6 @@ class Mesh(
         tracks.add(tr)
     }
     /**
-     * Возвращает количесво услов сетки
-     */
-    fun size(): Int{
-        return size
-    }
-    /**
      * Возвращает элемент сетки по указанному индексу
      */
     fun get(idx: Int): Double

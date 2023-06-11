@@ -45,13 +45,13 @@ class Track(
     private val rpDs = mesh.distributeFunctionOverMesh( rp )
     internal val Rv0: Real = iRv0 ?: sqrt(rDs.first() * rpDs.first())
     internal val Rvn: Real = iRvn ?: sqrt(rDs.last() * rpDs.last())
-    internal var clU: Array<Real> = Array(mesh.size()){0.R}
-    internal var rlU: Array<Real> = Array(mesh.size()){0.R}
+    internal var clU: Array<Real> = Array(mesh.size){0.R}
+    internal var rlU: Array<Real> = Array(mesh.size){0.R}
     internal val m3db: Array<Array<Real>> = mesh.create3diagMatrixBand(this)
-    internal var vectorB: Array<Real> = Array(mesh.size()){0.R}
-    internal var U: Array<Real> = Array(mesh.size()){0.R}
-    internal var I: Array<Real> = Array(mesh.size()){0.R}
-    internal var Ignd: Array<Real> = Array(mesh.size()){0.R}
+    internal var vectorB: Array<Real> = Array(mesh.size){0.R}
+    internal var U: Array<Real> = Array(mesh.size){0.R}
+    internal var I: Array<Real> = Array(mesh.size){0.R}
+    internal var Ignd: Array<Real> = Array(mesh.size){0.R}
     init {
         mesh.addTrack(this)
     }
