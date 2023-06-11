@@ -1,7 +1,5 @@
 package ots.complex
 
-import kotlin.math.abs
-
 operator fun Array<Complex>.plus(b: Array<Complex>): Array<Complex> {
     if ( size != b.size)
         throw Exception("Arrays size`s different can`t produce array summation")
@@ -63,7 +61,7 @@ fun Array<Complex>.reAvr(): Double {
  * Комплексный массив по модулю как Array<Double>
  */
 fun Array<Complex>.mod(): Array<Double>{
-    val out: Array<Double> = Array<Double>(size) { 0.0 }
+    val out: Array<Double> = Array(size) { 0.0 }
     var i=0
     forEach {
         out[i] += it.mod

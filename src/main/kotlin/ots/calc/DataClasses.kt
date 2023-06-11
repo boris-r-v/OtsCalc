@@ -55,6 +55,7 @@ data class VerifyData( // инициализатор по умолчанию - �
     var messegDataError: String = "",
     var messegSolverError: String = "Расчёт не выполнен", // текстовое сообщение об этих ошибках
     )    // геттеры для всех свойств
+/*  NEVER USERS
     fun VerifyData.resetDataError() {
         dataError = false
         messegDataError = ""
@@ -63,7 +64,7 @@ data class VerifyData( // инициализатор по умолчанию - �
         solverError = false
         messegSolverError = ""
     }
-
+*/
 /**
  * Класс содержит конфигурацию рассчета
  */

@@ -4,11 +4,6 @@ import ots.calc.Track
 import ots.complex.*
 import java.util.*
 
-
-fun create_ots ( json: String ){
-
-}
-
 fun main(args: Array<String>) {
 
     val mesh0 = Mesh(138.0,180.0, 0.1)
@@ -65,12 +60,12 @@ fun main(args: Array<String>) {
         )
     val rpRes=0.04.R+0.3.I      //оставил тоже значение междупутного соединения
     val rr = RelativeResist()   //объект хранит междупутные сопротивления
-    var trr = TRR( mutableMapOf<TRRKey, Array<PV>>(   TRRKey(track0, track1) to arrayOf(PV(138.0, rpRes)),
+    val trr = TRR( mutableMapOf(   TRRKey(track0, track1) to arrayOf(PV(138.0, rpRes)),
                                                             TRRKey(track0, track2) to arrayOf(PV(138.0, rpRes)),
                                                             TRRKey(track1, track2) to arrayOf(PV(138.0, rpRes))
                                                         ))
     rr.set(trr)
-    rr.set(TRR( mutableMapOf<TRRKey, Array<PV>>( TRRKey(track4, track5) to arrayOf(PV(0.0, rpRes)))))
+    rr.set(TRR( mutableMapOf( TRRKey(track4, track5) to arrayOf(PV(0.0, rpRes)))))
     val calc = Compute (arrayOf(track0,track1,track2,track3,track4,track5),     /*массив путей*/
                         mps,                                                    /*массив междупутных соедитнителей*/
                         arrayOf(mesh0,mesh1, mesh2),                            /*массив сеток*/

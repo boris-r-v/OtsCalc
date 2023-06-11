@@ -12,7 +12,7 @@ import kotlin.math.roundToInt
 * @param startX начальная координата участка расчёта, км
 * @param endX конечная координата участка расчёта, км
 * @param dX шаг сетки, км
-* @property traks пути принадлежащие этой сетке
+* @property tracks пути принадлежащие этой сетке
 * @property size количество узлов сетки
 * @property X массив узлов сетки с привязкой к координатам
 */
@@ -28,10 +28,10 @@ class Mesh(
     internal val zero: Array<Real> = Array<Real>(size){ 0.R }
       init {
         if ( endX <= startX ) {
-            Exception("Сетка [${startX}, ${endX}] границы заданы не корректно: координата правоя точки меньше координаты левой")
+            throw Exception("Сетка [${startX}, ${endX}] границы заданы не корректно: координата правоя точки меньше координаты левой")
         }
         if ( size <= 2 ) {
-            Exception("Сетка [${endX}, ${endX}] содержит менее трёх узлов, исправте настройки")
+            throw Exception("Сетка [${endX}, ${endX}] содержит менее трёх узлов, исправте настройки")
         }
 
     }
