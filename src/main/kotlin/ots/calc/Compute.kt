@@ -2,7 +2,6 @@ package ots.calc
 
 import ots.complex.*
 import java.lang.Exception
-import java.util.Arrays
 import kotlin.math.abs
 import kotlin.math.max
 
@@ -12,6 +11,7 @@ import kotlin.math.max
  * @param tracks - массив путей
  * @param mpss - массив междупутных соединиелей
  * @param meshes - массив сеток
+ * @param relres - ассоциативный массив взаимных сопротивлений путей принядлежащих одной сетке
  * @property mpsI - массив токов междупутных соединителей МПС и токов отходящих ветвей в местах соединения с главными путями
  * @property aXFind - матрица коэффициентов влияния тока во всех МПС на напряжения во всех МПС Ом. По главной диагонали сами на себя
  * @property knownU - массивы разности напряжений от заданных токов в МПС от начальнйо до конечной точки подключения
@@ -22,6 +22,7 @@ class Compute(
     private val tracks: Array<Track>,
     private val mpss: Array<Mps>,
     private val meshes: Array<Mesh>,
+    private val relres: RelativeResist,
     )
 {
     private val aXFind: Array<Array<Real>> = evalAXFind()
@@ -118,10 +119,8 @@ class Compute(
                 println(tr.name+" Eots_avg Обнуление")
                 for (tr2 in mesh.tracks) {
                     if (tr != tr2) {  // условие путь не наводит сам на себя
-                        //FIX ME - тут должно быть умнлжение тока на сопротивление же а не суммирования
-                        // tr.rlU = sumComplexArray(tr.rlU, sumComplexArray(tr2.I, tr2.mutResist)) // добавка на iый от jого
-                        //println("Track2Track,\ntrack${tr.name}:, ${Arrays.deepToString(tr.rlU)}\ntrack${tr2.name}:, ${Arrays.deepToString(tr2.I * tr2.rlR)}")
-                        tr.rlU = tr.rlU - tr2.I * tr2.rlR
+                        val rlR = relres.get(tr.mesh, tr, tr2)
+                        tr.rlU = tr.rlU - tr2.I * rlR
                         println(tr2.name+"->"+tr.name+", Eots_avg="+tr.rlU.modAvr()+", путь_"+tr2.name+" I_avg="+tr2.I.modAvr())
                     }
                 }
@@ -396,7 +395,7 @@ class Compute(
      * @param Track - путь
      */
     private fun evalItrack(track: Track) {
-        val n = track.mesh.meshN // число узлов сетки для текущего пути
+        val n = track.mesh.size // число узлов сетки для текущего пути
         var gRh: Real //условная проводимость слева и справа от узла сетки на схеме дискретизации рельсов, См
         var gLf: Real
         var IRh: Real //условный ток слева и справа от узла сетки на схеме дискретизации рельсов, А
@@ -430,7 +429,7 @@ class Compute(
      * @param Track - путь
      */
     private fun evalIgndTrack(track: Track) {
-        val n = track.mesh.meshN // число узлов сетки для текущего пути
+        val n = track.mesh.size // число узлов сетки для текущего пути
         //ток в земле для первого узла
         track.Ignd[0] = track.U[0] * (track.m3db[1][0] + track.m3db[0][0])
         //ток в земле для остальных узлов со второго до предпоследнего

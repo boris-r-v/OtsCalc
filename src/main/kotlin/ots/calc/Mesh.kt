@@ -13,7 +13,7 @@ import kotlin.math.roundToInt
 * @param endX конечная координата участка расчёта, км
 * @param dX шаг сетки, км
 * @property traks пути принадлежащие этой сетке
-* @property meshN количество узлов сетки
+* @property size количество узлов сетки
 * @property X массив узлов сетки с привязкой к координатам
 */
 class Mesh(
@@ -23,15 +23,17 @@ class Mesh(
 )
 {
     internal val tracks = arrayListOf<Track>()
-    internal val meshN: Int = ((endX - startX) / dX).toInt() + 1
-    internal val X: Array<Double> = Array<Double>(meshN){ startX+it*dX }
+    internal val size: Int = ((endX - startX) / dX).toInt() + 1
+    internal val X: Array<Double> = Array<Double>(size){ startX+it*dX }
+    internal val zero: Array<Real> = Array<Real>(size){ 0.R }
       init {
         if ( endX <= startX ) {
             Exception("Сетка [${startX}, ${endX}] границы заданы не корректно: координата правоя точки меньше координаты левой")
         }
-        if ( meshN <= 2 ) {
+        if ( size <= 2 ) {
             Exception("Сетка [${endX}, ${endX}] содержит менее трёх узлов, исправте настройки")
         }
+
     }
     /**
      * Добавляет путь с список путей принадлежащих этой сетке
@@ -43,7 +45,7 @@ class Mesh(
      * Возвращает количесво услов сетки
      */
     fun size(): Int{
-        return meshN
+        return size
     }
     /**
      * Возвращает элемент сетки по указанному индексу
@@ -129,7 +131,7 @@ class Mesh(
      * на вход принимает экземпляр вложенного класса Track
      */
     fun create3diagMatrixBand(track: Track): Array<Array<Real>> {
-        val n = meshN
+        val n = size
         var index: Int
         // Распределение по сетке функций сопротивления рельса Ом/км и переходное сопротивление рельс-земля Ом*км
         val r = distributeFunctionOverMesh(track.r)

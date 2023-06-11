@@ -93,3 +93,68 @@ data class ErrorsAndMessages ( // инициализатор по умолчан
         messegSolverError = ""
     }
 
+
+/**
+ * Класс ключа ассоциативного массива хранящего взаимные сопротивления между путями
+ * Коммутативность достигается сохранением одного и того же массива сопротивления под
+ * двумя различными колючями Key(a,b) и Key(b,a)
+ */
+data class TRRKey(val a: Track, val b: Track)
+fun TRRKey.swap(): TRRKey {return TRRKey( b, a )}
+
+/**
+ * Класс хранящий набор взаимных споротивлений распреденных по сетке
+ * TRR - сокращение от Tracks Relative Resist
+ * @param iMap ассоциативный массив междупутных сопротивьлений в исходных координатах
+ * @property mesh секта к которой принадледжат все пути этого объета
+ * @property data ассоциативный массив взатиных сопротивлений распределенный по узлам сетки
+ */
+class TRR(
+    iMap: MutableMap<TRRKey, Array<PV>>,
+)
+{
+    internal val mesh: Mesh = iMap.keys.first().a.mesh
+    internal val data: MutableMap<TRRKey, Array<Real>> = mutableMapOf()
+    init {
+        iMap.forEach {
+            if ( it.key.a.mesh != it.key.b.mesh ){
+                throw Exception("Пути ${it.key.a.name} и ${it.key.b.name} принадлежат разным сеткам, поэтому между ними нельзя задать взаимные сопротивления, исходные данные не верны")
+            }
+            val dist = mesh.distributeFunctionOverMesh(it.value)
+            data[it.key] = dist
+            data[it.key.swap()] = dist
+        }
+    }
+
+}
+
+/**
+ * Класс сожержащий массив взаимных сопротивлений путей, используется в расчетном классе
+ */
+class RelativeResist {
+    private val arr: MutableMap<Mesh, TRR> = mutableMapOf()
+    /**
+     * Сохранить новый массив междпутуных сопротивлений
+     * @param trr объект хранящий массивы междурутнеых соединений
+     */
+    fun set(trr: TRR) {
+        arr[trr.mesh] = trr
+    }
+
+    /**
+     * Найти и вернуть подходящий массив междупутных сопротивлений или массив нулей распреденный по узлам сетке
+     * @param mesh сетка к которой принадлежат оба эти пути
+     * @param tr1 первый путь
+     * @param tr2 второй путь
+     *
+     * собственно чтобы спрятать сюда эту логику все этот класс и был создан
+     * Прячем и тихо возращает массив нулей только из-за того что если он не задан то считаем что считаем без учета вляний
+     * и оператор достаточно умен чтобы не забыть занести массив влияний если расчет нужен с ним
+     */
+    fun get(mesh: Mesh, tr1: Track, tr2: Track): Array<Real> {
+        val trr = arr[mesh]
+            ?: return mesh.zero     //Если для этой сетки заданы взаимные сопротивления - то вренем массив нулей
+        return trr.data[TRRKey(tr1, tr2)]
+            ?: throw Exception("Не зананы взаимные сопротивления между путями: ${tr1.name} и ${tr2.name}. исходные данные не верны")
+    }
+}

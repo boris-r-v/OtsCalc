@@ -1,9 +1,7 @@
-import ots.complex.*
+import ots.calc.*
 import ots.calc.Mesh
-import ots.calc.PV
 import ots.calc.Track
-import ots.calc.Compute
-import ots.calc.Mps
+import ots.complex.*
 import java.util.*
 
 
@@ -42,13 +40,12 @@ fun main(args: Array<String>) {
      *     Если поставить сопротивление 0.0.R то расчет совпадает с постоянным током если пос
      *     Если поставить 1мкОм - то тоже почти совпадает
      */
-    val rpRes=0.04.R+0.3.I
-    val track0 = Track("0", mesh0, r13, rp13, rpRes, fot0, eps0, null, null, u0 )
-    val track1 = Track("1", mesh0, r13, rp13, rpRes, emp,  eps1,  null, null, u0)
-    val track2 = Track("2", mesh0, r13, rp13, rpRes, emp,  eps2, null, null, u0)
-    val track3 = Track("3", mesh1, r4,  rp4, rpRes, emp,  emp,  1e6.R, 1e6.R, u1 )
-    val track4 = Track("4", mesh2, r56, rp56, rpRes, fot4, emp,  1e6.R, null, u2 )
-    val track5 = Track("5", mesh2, r56, rp56, rpRes, emp,  eps5, 1e6.R, null, u2 )
+    val track0 = Track("0", mesh0, r13, rp13, fot0, eps0, null, null, u0 )
+    val track1 = Track("1", mesh0, r13, rp13, emp,  eps1,  null, null, u0)
+    val track2 = Track("2", mesh0, r13, rp13, emp,  eps2, null, null, u0)
+    val track3 = Track("3", mesh1, r4,  rp4,  emp,  emp,  1e6.R, 1e6.R, u1 )
+    val track4 = Track("4", mesh2, r56, rp56, fot4, emp,  1e6.R, null, u2 )
+    val track5 = Track("5", mesh2, r56, rp56, emp,  eps5, 1e6.R, null, u2 )
 
     val mps = arrayOf(
         Mps(track0, track1, 140.5, 140.5, 0.9e-3.R), /*МПС по главным путям 1-3*/
@@ -66,8 +63,19 @@ fun main(args: Array<String>) {
         Mps(track1, track4, 170.5, 0.0, 1.0e-5.R ), /*соединение путь гл2 (путь 1 в классе) и  отход2 путь1 (путь 4 в классе) */
         Mps(track2, track5, 170.5, 0.0, 1.0e-5.R ), /*соединение путь гл3 (путь 2 в классе) и  отход2 путь2 (путь 5 в классе) */
         )
-
-    val calc = Compute (arrayOf(track0,track1,track2,track3,track4,track5), mps, arrayOf(mesh0,mesh1, mesh2))  // добавил в аргументы массив сеток
+    val rpRes=0.04.R+0.3.I      //оставил тоже значение междупутного соединения
+    val rr = RelativeResist()   //объект хранит междупутные сопротивления
+    var trr = TRR( mutableMapOf<TRRKey, Array<PV>>(   TRRKey(track0, track1) to arrayOf(PV(138.0, rpRes)),
+                                                            TRRKey(track0, track2) to arrayOf(PV(138.0, rpRes)),
+                                                            TRRKey(track1, track2) to arrayOf(PV(138.0, rpRes))
+                                                        ))
+    rr.set(trr)
+    rr.set(TRR( mutableMapOf<TRRKey, Array<PV>>( TRRKey(track4, track5) to arrayOf(PV(0.0, rpRes)))))
+    val calc = Compute (arrayOf(track0,track1,track2,track3,track4,track5),     /*массив путей*/
+                        mps,                                                    /*массив междупутных соедитнителей*/
+                        arrayOf(mesh0,mesh1, mesh2),                            /*массив сеток*/
+                        rr,                                                     /*массив межупутных сопротивдления*/
+                        )  // добавил в аргументы массив сеток
     calc.calcOts()
     println(calc.computingSettings.currentStateSolver[0])
     println(calc.computingSettings.currentStateSolver[1])
