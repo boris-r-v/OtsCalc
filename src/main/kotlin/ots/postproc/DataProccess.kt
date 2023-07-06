@@ -37,6 +37,9 @@ class DataProccess (num_tracks: Int) {
                 data.avrU[i][ii] = data.U[i][ii].sumOf { it } / data.U[i][ii].size
                 data.posAvrU[i][ii] = data.U[i][ii].sumOf{ it -> if (it > 0) it else 0 } / data.U[i][ii].size
             }
+            tr.I.forEachIndexed { ii, pnt ->
+                data.I[i][ii].add(pnt.mod)
+            }
         }
     }
 }
