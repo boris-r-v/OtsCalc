@@ -21,7 +21,7 @@ class Imit(
     */
     internal fun tic() {
         cmp.calcOts()
-        dhandler.handle_one( cmp )
+        dhandler.add_one( cmp )
         for (tr in eps) {
             tr.forEachIndexed { i, train ->
                 train.point += Xeps

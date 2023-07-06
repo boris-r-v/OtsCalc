@@ -83,5 +83,6 @@ fun main(args: Array<String>) {
         println ("TIC: $i")
         imit.tic()
     }
+    dt.run_post_proccess()
 
 }
