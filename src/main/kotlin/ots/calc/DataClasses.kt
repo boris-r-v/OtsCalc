@@ -35,8 +35,8 @@ data class Mps( val startTrack: Track,
  * @param point значение координаты точки
  * @param value значение величины в данной координате
  */
-data class PV(  val point: Double,
-                val value: Real,
+data class PV(var point: Double,
+              val value: Real,
 )
 
 /**

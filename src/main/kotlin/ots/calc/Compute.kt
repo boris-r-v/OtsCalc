@@ -19,7 +19,7 @@ import kotlin.math.max
  * @property errorsAndMessages - хранлилище статусов расчета
  */
 class Compute(
-    private val tracks: Array<Track>,
+    internal val tracks: Array<Track>,
     private val mpss: Array<Mps>,
     private val meshes: Array<Mesh>,
     private val relres: RelativeResist,
