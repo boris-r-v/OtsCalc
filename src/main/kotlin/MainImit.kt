@@ -2,9 +2,8 @@ import ots.calc.*
 import ots.calc.Mesh
 import ots.calc.Track
 import ots.complex.*
-import ots.postproc.Data
-import ots.postproc.Imit
-import java.util.*
+import ots.statistic.Data
+import ots.statistic.MoveImitator
 
 fun main(args: Array<String>) {
 
@@ -27,6 +26,7 @@ fun main(args: Array<String>) {
 
     val fot0 = arrayOf( PV(140.5, 2300.R), PV(160.2, 2400.R), PV(176.7, 3000.R) )
     val fot4 = arrayOf( PV(10.2, 1400.R) )
+
     val eps0 = arrayOf( PV(149.0, 800.R), PV(171.2, 3400.R) )
     val eps1 = arrayOf( PV(156.7, 1900.R) )
     val eps2 = arrayOf( PV(145.3, 1600.R) )
@@ -76,14 +76,23 @@ fun main(args: Array<String>) {
         rr,                             /*массив межупутных сопротивдления*/
     )  // добавил в аргументы массив сеток
 
+    /**
+     * Как добавить сбор статистики в расчет
+     * tics - Всего будет расчитанно 15 мгновенных схем
+     * Xeps - В каждой новой мгновенной схеме поезд смещается на 0,1 км
+     * Пересчет токов фидеров проихводится не будет
+     * Токи поездов изменяться не будут тоже
+     */
+    val tics = 15
+    val Xeps = 0.1
+
     var epsArray = arrayOf(eps0, eps1, eps2, emp, emp, eps5)
-    var imit = Imit (calc, epsArray, 0.1 )
-    for (i in 1..15) {
-        println ("TIC: $i")
+    var imit = MoveImitator (calc, epsArray, Xeps )
+    for (i in 1..tics) {
         imit.tic()
     }
     var dt = Data(  arrayOf(track0,track1,track2,track3,track4,track5) )
     dt.print(0)
-
+    dt.write2csv("./track0.csv", 0)
 
 }

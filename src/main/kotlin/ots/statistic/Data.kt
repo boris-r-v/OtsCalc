@@ -1,16 +1,12 @@
-package ots.postproc
+package ots.statistic
 
 import ots.calc.Track
+import java.io.File
 import java.util.*
 
 /**
- * Структура данных для хранения статистичесих данных путей в узлах сетки
- * Например максимальные значения U/I в каждом узле сетки
- * Стуктура массив_путей[ массив узлов сетки [ Значение ] ]
- */
-typealias meshPointData = Array<ArrayList<Double>>
-/**
- * Статистика по одному пути, данные распределены по узлам сетки пути
+ * Класс со статистикой по одному пути, данные распределены по узлам сетки пути
+ * Исторические данные на основании которых собирается статистика храняться в класе Track
  * @param mesh_size колическво узлов сетки
  * @param rmsWindow количество шагов расчета за который расчитывать RMS
  * @property maxU массив максимальных значений напряжений в узлах сетки
@@ -21,12 +17,13 @@ typealias meshPointData = Array<ArrayList<Double>>
  * @property rmsI действующее значение тока за rms_steps шагов расчета в каждом узле сетки
  */
 class TrackStat(track: Track, rmsWindow: Int) {
-    internal var maxU: Array<Double> = Array(track.mesh.size) {0.0}
-    internal var minU: Array<Double> = Array(track.mesh.size) {0.0}
-    internal var avrU: Array<Double> = Array(track.mesh.size) {0.0}
-    internal var skoU: Array<Double> = Array(track.mesh.size) {0.0}
-    internal var posAvrU: Array<Double> = Array(track.mesh.size) {0.0}
-    internal var rmsI: Array<Double> = Array(track.mesh.size) {0.0}
+    internal val size = track.mesh.size
+    internal val maxU: Array<Double> = Array(size) {0.0}
+    internal val minU: Array<Double> = Array(size) {0.0}
+    internal val avrU: Array<Double> = Array(size) {0.0}
+    internal val skoU: Array<Double> = Array(size) {0.0}
+    internal val posAvrU: Array<Double> = Array(size) {0.0}
+    internal val rmsI: Array<Double> = Array(size) {0.0}
 
     /**
      * В методе инициализации проходит вся магия приготовления/расчета статистики
@@ -81,11 +78,17 @@ class TrackStat(track: Track, rmsWindow: Int) {
 }
 
 /**
- * Класс собирающий статистику (проводящий пост обрбаботку данных и потом хранит их в своих свойствах
+ * Класс собирающий статистику
+ * Сбор статистики происходит в момент создания обхекта, в контрукторах TrackStat
+ * @param tracks Массив путей по которым нужно собрать статистику
  */
 class Data (tracks: Array<Track> ) {
     internal val data = Array(tracks.size){ i -> TrackStat(tracks[i], 5) }
 
+    /**
+     * Функция распечатывает статистку по указанному пути
+     * @param track индекс пути в массиве путей
+     */
     fun print(track: Int){
         println("track${track}.maxU: ${Arrays.deepToString( data[track].maxU)} " )
         println("track${track}.avrU: ${Arrays.deepToString( data[track].avrU)} " )
@@ -94,6 +97,20 @@ class Data (tracks: Array<Track> ) {
         println("track${track}.skoU: ${Arrays.deepToString( data[track].skoU)} " )
         println("track${track}.rmsI: ${Arrays.deepToString( data[track].rmsI)} " )
     }
+
+    /**
+     * Функция сохраняет статистику по заданному пути в указанный файл в фомате csv.
+     * Каждая строка в файле содержит данные по одному узлу сетки
+     */
+      fun write2csv( filePath: String, trackIdx: Int ){
+         File(filePath).printWriter().use { out->
+             out.println("meshNode,maxU,minU,arvU,skoU,posAvrU,rmsI")
+             val tr = data.get(trackIdx)
+             for (i in 0..tr.size-1){
+                 out.println("${i},${tr.maxU[i]},${tr.minU[i]},${tr.avrU[i]},${tr.skoU[i]},${tr.posAvrU[i]},${tr.rmsI[i]}")
+             }
+         }
+     }
 }
 
 
