@@ -5,7 +5,7 @@ import ots.complex.*
 import ots.statistic.Data
 import ots.statistic.MoveImitator
 
-fun main(args: Array<String>) {
+fun main() {
 
     val mesh0 = Mesh(138.0,180.0, 0.1)
     val mesh1 = Mesh(0.0,7.0, 0.1)
@@ -79,19 +79,19 @@ fun main(args: Array<String>) {
     /**
      * Как добавить сбор статистики в расчет
      * tics - Всего будет расчитанно 15 мгновенных схем
-     * Xeps - В каждой новой мгновенной схеме поезд смещается на 0,1 км
+     * dEps - В каждой новой мгновенной схеме поезд смещается на 0,1 км
      * Пересчет токов фидеров проихводится не будет
      * Токи поездов изменяться не будут тоже
      */
     val tics = 15
-    val Xeps = 0.1
+    val dEps = 0.1
 
-    var epsArray = arrayOf(eps0, eps1, eps2, emp, emp, eps5)
-    var imit = MoveImitator (calc, epsArray, Xeps )
+    val epsArray = arrayOf(eps0, eps1, eps2, emp, emp, eps5)
+    val imit = MoveImitator (calc, epsArray, dEps )
     for (i in 1..tics) {
         imit.tic()
     }
-    var dt = Data(  arrayOf(track0,track1,track2,track3,track4,track5) )
+    val dt = Data(  arrayOf(track0,track1,track2,track3,track4,track5) )
     dt.print(0)
     dt.write2csv("./track0.csv", 0)
 

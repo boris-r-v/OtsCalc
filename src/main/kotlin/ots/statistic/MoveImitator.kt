@@ -8,23 +8,23 @@ import ots.calc.PV
  *
  * @param cmp Класс расчета ОТС
  * @param eps Массив поездов на каждом пути: на первом пути расположены поезда из eps[0], на втором esp[1], etc. Если на пути нет поездов- то передать пустой имассив, может позже в нем поезда появятся
- * @param dXesp смещение поезда за один расчетный шаг
+ * @param dEps смещение поезда за один расчетный шаг
  */
 class MoveImitator(
-    internal val cmp: Compute,
-    internal val eps: Array<Array<PV>>,
-    private val Xeps: Double )
+    private val cmp: Compute,
+    private val eps: Array<Array<PV>>,
+    private val dEps: Double )
 {
     /**
-     * Проводит один этап моделирования смещая поезда на Xeps
+     * Проводит один этап моделирования смещая поезда на dEps
      * проводит расчет при текущем положении поездов
-     * сдвигает все поезда на Xeps
+     * сдвигает все поезда на dEps
     */
     internal fun tic() {
         cmp.calcOts()
         for (tr in eps) {
             tr.forEachIndexed { i, train ->
-                train.point += Xeps
+                train.point += dEps
                 if (train.point > cmp.tracks[i].mesh.endX) {
                     train.point = cmp.tracks[i].mesh.startX
                 }
