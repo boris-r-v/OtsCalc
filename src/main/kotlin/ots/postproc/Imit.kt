@@ -13,15 +13,13 @@ import ots.calc.PV
 class Imit(
     internal val cmp: Compute,
     internal val eps: Array<Array<PV>>,
-    private val Xeps: Double,
-    private val dhandler: DataProccess )
+    private val Xeps: Double )
 {
     /**
      * Проводит один этап моделирования смещая поезда на Xeps
     */
     internal fun tic() {
         cmp.calcOts()
-        dhandler.add_one( cmp )
         for (tr in eps) {
             tr.forEachIndexed { i, train ->
                 train.point += Xeps
@@ -29,7 +27,6 @@ class Imit(
                     train.point = cmp.tracks[i].mesh.startX
                 }
             }
-
         }
     }
 }

@@ -52,6 +52,13 @@ class Track(
     internal var U: Array<Real> = Array(mesh.size){0.R}
     internal var I: Array<Real> = Array(mesh.size){0.R}
     internal var Ignd: Array<Real> = Array(mesh.size){0.R}
+    /**
+     * Свойства для хранение исторических данных
+     * Массивы U, I после расчета одной мгновенной схемы сохраняются для последующей обработки
+     * Сл-но запаситесь оперативой
+     */
+    internal val histU: Array<ArrayList<Real>> = Array(mesh.size){ arrayListOf() }
+    internal val histI: Array<ArrayList<Real>> = Array(mesh.size){ arrayListOf() }
     init {
         mesh.addTrack(this)
     }
@@ -62,7 +69,17 @@ class Track(
      *  Может потом метод переименуем :)
      */
     fun isDC() = if (iclU == null ) true else false
-
+    /**
+     * Копирует данные из массивов U,I в массивы исторических значения
+     */
+    fun copy2Hist(){
+        U.forEachIndexed { i, value ->
+            histU[i].add( value )
+        }
+        I.forEachIndexed { i, value ->
+            histI[i].add( value )
+        }
+    }
     /**
      * Функция установки массива наведенных напряжений от контакной подвеки на рельсы из исходных данных после расчета матрицы влияний МПС
      */

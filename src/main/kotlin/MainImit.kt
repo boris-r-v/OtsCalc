@@ -2,7 +2,7 @@ import ots.calc.*
 import ots.calc.Mesh
 import ots.calc.Track
 import ots.complex.*
-import ots.postproc.DataProccess
+import ots.postproc.Data
 import ots.postproc.Imit
 import java.util.*
 
@@ -68,21 +68,22 @@ fun main(args: Array<String>) {
     ))
     rr.set(trr)
     rr.set(TRR( mutableMapOf( TRRKey(track4, track5) to arrayOf(PV(0.0, rpRes)))))
+    val trackArray = arrayOf(track0,track1,track2,track3,track4,track5)
     val calc = Compute (
-        arrayOf(track0,track1,track2,track3,track4,track5),     /*массив путей*/
-        mps,                                                    /*массив междупутных соедитнителей*/
-        arrayOf(mesh0,mesh1, mesh2),                            /*массив сеток*/
-        rr,                                                     /*массив межупутных сопротивдления*/
+        trackArray,                     /*массив путей*/
+        mps,                            /*массив междупутных соедитнителей*/
+        arrayOf(mesh0,mesh1, mesh2),    /*массив сеток*/
+        rr,                             /*массив межупутных сопротивдления*/
     )  // добавил в аргументы массив сеток
 
-    var eps_all = arrayOf(eps0, eps1, eps2, emp, emp, eps5)
-    var dt = DataProccess( 5 )
-    var imit = Imit (calc, eps_all, 0.5, dt )
-
-    for (i in 1..5) {
+    var epsArray = arrayOf(eps0, eps1, eps2, emp, emp, eps5)
+    var imit = Imit (calc, epsArray, 0.1 )
+    for (i in 1..15) {
         println ("TIC: $i")
         imit.tic()
     }
-    dt.run_post_proccess()
+    var dt = Data(  arrayOf(track0,track1,track2,track3,track4,track5) )
+    dt.print(0)
+
 
 }
