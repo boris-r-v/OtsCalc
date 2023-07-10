@@ -35,14 +35,14 @@ class TrackStat(track: Track, rmsWindow: Int) {
         track.histU.forEachIndexed { i, arrForOneMeshPoint ->
             var sumOfUArray = 0.0
             var sumOfPosUArray = 0.0
-            var min = 10000.0
-            var max =-10000.0
+            var min = arrForOneMeshPoint[0].mod
+            var max = arrForOneMeshPoint[0].mod
             val size = arrForOneMeshPoint.size
             arrForOneMeshPoint.forEach{ real ->
                 val mod = real.mod
-                if ( min > mod )
+                if (mod < min)
                     min = mod
-                if ( max < mod )
+                if (mod > max)
                     max = mod
                 sumOfUArray += mod
                 if (mod > 0)
