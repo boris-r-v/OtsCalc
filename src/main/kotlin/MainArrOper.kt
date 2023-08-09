@@ -1,6 +1,8 @@
 import ots.complex.*
 import java.util.*
-
+/*
+ тесты вывод комплексных массивов
+ */
 fun main(args: Array<String>) {
     val ar1 = arrayOf( 2.R, 3.R)
     val ar2 = arrayOf( 20.R, 10.R )

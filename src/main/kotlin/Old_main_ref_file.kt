@@ -1,5 +1,7 @@
 //package org.boristest.OpeOverload
-
+/*
+проба работы с классом комплексных чисел
+ */
 import ots.complex.*
 
 data class Point(val x: Double, val y: Double )

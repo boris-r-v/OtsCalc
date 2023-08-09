@@ -4,6 +4,10 @@ import ots.calc.Track
 import ots.complex.*
 import java.util.*
 
+/*
+Пример расчета одной мгновенной схемы без описания особого. Для тестирования старый вариант
+ */
+
 fun main(args: Array<String>) {
 
     val mesh0 = Mesh(138.0,180.0, 0.1)

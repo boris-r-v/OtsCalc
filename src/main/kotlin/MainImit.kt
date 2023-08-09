@@ -4,30 +4,36 @@ import ots.calc.Track
 import ots.complex.*
 import ots.statistic.Data
 import ots.statistic.MoveImitator
-
+/*
+пример расчета нескольких мгновенных схем
+ для участка с 3главными путями, отходящим тупиком и отходящим двухпутным ответвлением
+ имитация движения ЭПС с помощью вспомогательного класса MoveImitator
+ последнее для тестирования обработчика результатов расчета токов и напряжений в путях по нескольким мгновенным схемам
+ обработчик результатов в классе Data
+ */
 fun main() {
 
-    val mesh0 = Mesh(138.0,180.0, 0.1)
-    val mesh1 = Mesh(0.0,7.0, 0.1)
-    val mesh2 = Mesh(0.0,14.0, 0.1)
+    val mesh0 = Mesh(138.0,180.0, 0.1) // сетка гл. пути 1-3
+    val mesh1 = Mesh(0.0,7.0, 0.1)      // сетка отходящий тупик
+    val mesh2 = Mesh(0.0,14.0, 0.1) //сетка отходящие два пути
 
-    val u0 = arrayOf( PV(0.0, 0.0.R) )
+    val u0 = arrayOf( PV(0.0, 0.0.R) ) // напряжение наводимое от КС для этих групп путей
     val u1 = arrayOf( PV(0.0, 0.0.R ))
     val u2 = arrayOf( PV(0.0, 0.0.R) )
 
-    val r13 = arrayOf( PV(189.0, 0.12615.R+0.5871.I) )
-    val rp13 = arrayOf( PV(179.0, 20.R) )
+    val r13 = arrayOf( PV(189.0, 0.12615.R+0.5871.I) ) //сопротивление рельсов вдоль пути гл пути
+    val rp13 = arrayOf( PV(179.0, 20.R) ) // то же переходное сопротивление
 
-    val r4 = arrayOf( PV(8.0, 0.12615.R+0.5871.I) )
-    val rp4 = arrayOf( PV(8.0, 1.1.R) )
+    val r4 = arrayOf( PV(8.0, 0.12615.R+0.5871.I) ) //сопротивление рельсов вдоль отходящий тупик
+    val rp4 = arrayOf( PV(8.0, 1.1.R) ) // то же переходное сопротивление
 
-    val r56 = arrayOf( PV(15.0, 0.12615.R+0.5871.I) )
-    val rp56 = arrayOf( PV(15.0, 10.R) )
+    val r56 = arrayOf( PV(15.0, 0.12615.R+0.5871.I) )//сопротивление рельсов вдоль отходящие два пути
+    val rp56 = arrayOf( PV(15.0, 10.R) ) // то же переходное сопротивление
 
-    val fot0 = arrayOf( PV(140.5, 2300.R), PV(160.2, 2400.R), PV(176.7, 3000.R) )
-    val fot4 = arrayOf( PV(10.2, 1400.R) )
+    val fot0 = arrayOf( PV(140.5, 2300.R), PV(160.2, 2400.R), PV(176.7, 3000.R) ) // ФОТ для главного пути 1
+    val fot4 = arrayOf( PV(10.2, 1400.R) ) // ФОТ для пути второй отходящей ветки
 
-    val eps0 = arrayOf( PV(149.0, 800.R), PV(171.2, 3400.R) )
+    val eps0 = arrayOf( PV(149.0, 800.R), PV(171.2, 3400.R) ) // ЭПС по всем путям
     val eps1 = arrayOf( PV(156.7, 1900.R) )
     val eps2 = arrayOf( PV(145.3, 1600.R) )
     val eps5 = arrayOf( PV(12.1, 1400.R) )
@@ -37,6 +43,7 @@ fun main() {
      *     Если поставить сопротивление 0.0.R то расчет совпадает с постоянным током если пос
      *     Если поставить 1мкОм - то тоже почти совпадает
      */
+    // пути
     val track0 = Track("0", mesh0, r13, rp13, fot0, eps0, null, null, u0 )
     val track1 = Track("1", mesh0, r13, rp13, emp,  eps1,  null, null, u0)
     val track2 = Track("2", mesh0, r13, rp13, emp,  eps2, null, null, u0)
@@ -44,6 +51,7 @@ fun main() {
     val track4 = Track("4", mesh2, r56, rp56, fot4, emp,  1e6.R, null, u2 )
     val track5 = Track("5", mesh2, r56, rp56, emp,  eps5, 1e6.R, null, u2 )
 
+    //МПС
     val mps = arrayOf(
         Mps(track0, track1, 140.5, 140.5, 0.9e-3.R), /*МПС по главным путям 1-3*/
         Mps(track1, track2, 140.5, 140.5, 0.9e-3.R),
@@ -60,15 +68,32 @@ fun main() {
         Mps(track1, track4, 170.5, 0.0, 1.0e-5.R ), /*соединение путь гл2 (путь 1 в классе) и  отход2 путь1 (путь 4 в классе) */
         Mps(track2, track5, 170.5, 0.0, 1.0e-5.R ), /*соединение путь гл3 (путь 2 в классе) и  отход2 путь2 (путь 5 в классе) */
     )
-    val rpRes=0.04.R+0.3.I      //оставил тоже значение междупутного соединения
-    val rr = RelativeResist()   //объект хранит междупутные сопротивления
-    val trr = MeshRelativeResist( mutableMapOf(   MRRKey(track0, track1) to arrayOf(PV(138.0, rpRes)),
-        MRRKey(track0, track2) to arrayOf(PV(138.0, rpRes)),
-        MRRKey(track1, track2) to arrayOf(PV(138.0, rpRes))
+
+    /**
+     *    Далее задается междупутное взаимное сопротивление. Оно задается между путями, у которых одна общая сетка.
+     *    Т.е. при взаимном сопротивлении фактически должна быть общая система координат вдоль пути.
+     *    Поэтому ниже оно задано между всеми тремя главными путями и между двумя путями отходящей двухпутной ветки.
+     *    Тупик имеет свою отдельную сетку и не связан с другими путями индуктивно.
+     *    Также индуктивно считаются не связанными главные пути и отходящие пути второй ветки
+     *    Взаимное сопротивление реализовано через классы RelativeResist и MeshRelativeResist
+     */
+    val rpRes=0.04.R+0.3.I      //величина взаимного междупутного сопротивления Ом/км принята константой для упрощения
+    val rr = RelativeResist()   //объект хранит междупутные взаимные сопротивления
+    // для главных путей 1,2 и 3
+    val trr = MeshRelativeResist( mutableMapOf(   MRRKey(track0, track1) to arrayOf(PV(138.0, rpRes)),  // между гл1 и гл2
+        MRRKey(track0, track2) to arrayOf(PV(138.0, rpRes)),                                            // между гл1 и гл3
+        MRRKey(track1, track2) to arrayOf(PV(138.0, rpRes))                                             // между гл2 и гл3
     ))
+    // для отход2
     rr.set(trr)
-    rr.set(MeshRelativeResist( mutableMapOf( MRRKey(track4, track5) to arrayOf(PV(0.0, rpRes)))))
-    val trackArray = arrayOf(track0,track1,track2,track3,track4,track5)
+    rr.set(MeshRelativeResist( mutableMapOf( MRRKey(track4, track5) to arrayOf(PV(0.0, rpRes))))) // между отход2_пут1 и отход2_пут2
+
+
+    val trackArray = arrayOf(track0,track1,track2,track3,track4,track5) // общий массив путей
+
+    /*инициализация класса расчета
+    при инициализации происходит подготовка к дальнейшему расчету
+     */
     val calc = Compute (
         trackArray,                     /*массив путей*/
         mps,                            /*массив междупутных соедитнителей*/
@@ -83,14 +108,16 @@ fun main() {
      * Пересчет токов фидеров проихводится не будет
      * Токи поездов изменяться не будут тоже
      */
-    val tics = 15
-    val dEps = 0.1
+    val tics = 15 //количество мгновенных схем
+    val dEps = 0.1 //шаг перемещения ЭПС, км
 
+    // запуск имитации движения ЭПС
     val epsArray = arrayOf(eps0, eps1, eps2, emp, emp, eps5)
     val imit = MoveImitator (calc, epsArray, dEps )
     for (i in 1..tics) {
         imit.tic()
     }
+    //обработка результатов расчета ОТС нескольких мгновенных схем
     val dt = Data(  arrayOf(track0,track1,track2,track3,track4,track5) )
     dt.print(0)
     dt.write2csv("./track0.csv", 0)

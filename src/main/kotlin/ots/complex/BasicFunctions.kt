@@ -1,6 +1,9 @@
 package ots.complex
 
 import kotlin.math.*
+/**
+ * Класс базовых функций над комплексными числами. Комплекснное число из класса Complex
+ */
 
 /**
  * Exponential function

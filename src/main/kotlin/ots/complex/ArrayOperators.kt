@@ -1,4 +1,7 @@
 package ots.complex
+/**
+ * Класс для работы с массивами комплексеных чисел. Комплекснное число из класса Complex
+ */
 
 operator fun Array<Complex>.plus(b: Array<Complex>): Array<Complex> {
     if ( size != b.size)
@@ -43,7 +46,7 @@ fun Array<Complex>.modAvr(): Double {
     return modSum()/size
 }
 /**
- * Сумма действиетльных частей массива
+ * Сумма действиетельных частей массива
  */
 fun Array<Complex>.reSum(): Double {
     var out = 0.0

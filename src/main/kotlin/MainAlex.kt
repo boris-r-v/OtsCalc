@@ -1,5 +1,7 @@
 import ots.calc.OTS_DC_HeterogRail_call_kt
-
+/*
+проба работы с классом для постоянного тока
+ */
 fun main() {
     // создадим класс ОТС с указанием конструктору количества путей и сеток
     val ots1 = OTS_DC_HeterogRail_call_kt(6, 3) //создаёмэкземпляркласса
