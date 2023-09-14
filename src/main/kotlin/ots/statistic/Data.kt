@@ -81,7 +81,7 @@ class TrackStat(track: Track, rmsWindow: Int) {
             minSU[i] = avrU[i] - 1.5 * skoU[i]
         }
         track.histI.forEachIndexed { i, arrForOneMeshPoint ->
-
+/*
             maxI[i] = arrForOneMeshPoint[0].mod.absoluteValue
             var sumOfSquare = 0.0
             arrForOneMeshPoint.forEach{ real ->
@@ -92,14 +92,15 @@ class TrackStat(track: Track, rmsWindow: Int) {
                 sumOfSquare += mod.pow(2.0)
             }
             rmsI[i] = sqrt( sumOfSquare/arrForOneMeshPoint.size)
-        /*
-            This RMS windows algo gives rmsI value more then maxI
+*/
+
+            //This RMS windows algo gives rmsI value more then maxI
             maxI[i] = arrForOneMeshPoint[0].mod.absoluteValue
             var rms = 0.0
             val size = arrForOneMeshPoint.size
             if (rmsWindow >= size)
                 throw Exception("Размер окна расчета RMS меньше количества проведенных расчетов мгновенных схем")
-            for ( ii in 0..rmsWindow){
+            for ( ii in 0 until rmsWindow){
                 val mod = arrForOneMeshPoint[ii].mod
                 rms += mod.pow(2.0)
                 if (mod.absoluteValue > maxI[i]){
@@ -107,7 +108,7 @@ class TrackStat(track: Track, rmsWindow: Int) {
                 }
             }
             var maxRMS = rms
-            for ( ii in rmsWindow+1 until size){
+            for ( ii in rmsWindow until size){
                 val mod = arrForOneMeshPoint[ii].mod
                 rms = rms - arrForOneMeshPoint[ii - rmsWindow].mod.pow(2.0) + mod.pow(2.0)
                 if (rms > maxRMS) {
@@ -118,7 +119,7 @@ class TrackStat(track: Track, rmsWindow: Int) {
                 }
             }
             rmsI[i] = sqrt( maxRMS/rmsWindow )
-        */
+
         }
     }
 }
