@@ -14,7 +14,7 @@ import kotlin.math.sqrt
  * @property maxU массив максимальных значений напряжений в узлах сетки
  * @property minU массив минимальны значений напряжений в узлах сетки
  * @property avrU массив средних арифметических значений напряжений в узлах сетки
- * @property skoU массив среднеквадратичных отклонений от среднего значения напряжений у узлах сетки
+ * @property skoU массив среднеквадратичных отклонений от среднего значения напряжений в узлах сетки
  * @property posAvrU массив положительных средних арифметических значений напряжений в узлах сетки, полезно для оценки потенциальной опасности электрокоррозии рельсов и железобетонных контрукций
  * @property exContactU доля времени (в %) когда было приевышено максимальное напряжения прикосновения к рельсу
  * @property maxSU массив максимальных значений напряжений статистического корридора в узлах сетки, значение напряжения попавшие в диапаон (avrU, avrU+1.5*skoU]
@@ -38,20 +38,23 @@ class TrackStat(track: Track, rmsWindow: Int) {
     internal val maxI: Array<Double> = Array(size) {0.0}
     /**
      * Допустимая величина потенцила рельсов,
-     * равно допустимое напряжение прикосновения на теле человека (75 В) деленоек на коэффициент прикосновения (примерно 0.5)
+     * равно допустимое напряжение прикосновения на теле человека (75 В) деленное на коэффициент прикосновения (примерно 0.5)
      */
-    private val railMaxAllowedU: Double = 75.0/0.5
+    private val railMaxAllowedU: Double = 75.0/0.5 //допустимое напряжение в рельсах, В
     /**
      * В методе инициализации проходит вся магия приготовления/расчета статистики
      */
     init {
-        track.histU.forEachIndexed { i, arrForOneMeshPoint ->
-            var sumOfUArray = 0.0
-            var sumOfPosUArray = 0.0
-            var min = arrForOneMeshPoint[0].mod
-            var max = arrForOneMeshPoint[0].mod
-            val size = arrForOneMeshPoint.size
-            var moreThenAllowedU = 0
+        //обработка по напряжению
+        track.histU.forEachIndexed { i, arrForOneMeshPoint -> // i- номер узла сетки, arrForOneMeshPoint - массив значений по времени в данном узле сетки
+            var sumOfUArray = 0.0  // накапливаемое суммарное напряжение, В
+            var sumOfPosUArray = 0.0 // то же самое, только при положительном значении
+            var min = arrForOneMeshPoint[0].mod // минимальное напряжение, В
+            var max = arrForOneMeshPoint[0].mod // максимальное напряжение, В
+            val size = arrForOneMeshPoint.size  // количество точек по времени
+            var moreThenAllowedU = 0 // количество превышений допустимого напряжения
+            //поиск максимума max, минимума min, суммированного напряжения sumOfUArray,
+            // суммированного положительного напряжения sumOfPosUArray, количества превышений moreThenAllowedU
             arrForOneMeshPoint.forEach{ real ->
                 val mod = real.mod
                 if (mod < min)
@@ -65,41 +68,32 @@ class TrackStat(track: Track, rmsWindow: Int) {
                     moreThenAllowedU += 1
                 }
             }
-
+            //записываем найденные в iый узел
             maxU[i] = max
             minU[i] = min
-            avrU[i] = sumOfUArray / size
-            posAvrU[i] = sumOfPosUArray / size
-            exContactU[i] = 100.0 * moreThenAllowedU / size
+            avrU[i] = sumOfUArray / size //среднее напряжение
+            posAvrU[i] = sumOfPosUArray / size //среднее положительное напряжение (для электро-коррозии)
+            exContactU[i] = 100.0 * moreThenAllowedU / size //доля превышения от всего времени в %
+            //расчет СКО напряжения и статистического коридора
             val arv = avrU[i]
             var sumOfDiffSq = 0.0
-            arrForOneMeshPoint.forEach { real ->
+            arrForOneMeshPoint.forEach { real -> //сумма квадратов
                 sumOfDiffSq += (arv - real.mod).pow(2.0)
             }
-            skoU[i] = sqrt( sumOfDiffSq / size )
-            maxSU[i] = avrU[i] + 1.5 * skoU[i]
+            skoU[i] = sqrt( sumOfDiffSq / size ) //СКО
+            maxSU[i] = avrU[i] + 1.5 * skoU[i] //статистический коридор
             minSU[i] = avrU[i] - 1.5 * skoU[i]
         }
-        track.histI.forEachIndexed { i, arrForOneMeshPoint ->
-/*
-            maxI[i] = arrForOneMeshPoint[0].mod.absoluteValue
-            var sumOfSquare = 0.0
-            arrForOneMeshPoint.forEach{ real ->
-                val mod = real.mod.absoluteValue
-                if (mod > maxI[i]){
-                    maxI[i] = mod
-                }
-                sumOfSquare += mod.pow(2.0)
-            }
-            rmsI[i] = sqrt( sumOfSquare/arrForOneMeshPoint.size)
-*/
 
-            //This RMS windows algo gives rmsI value more then maxI
+        //обработка по току
+        track.histI.forEachIndexed { i, arrForOneMeshPoint ->
+            //расчет максимального тока maxI и максимального эффективного тока maxRMS
             maxI[i] = arrForOneMeshPoint[0].mod.absoluteValue
             var rms = 0.0
             val size = arrForOneMeshPoint.size
             if (rmsWindow >= size)
                 throw Exception("Размер окна расчета RMS меньше количества проведенных расчетов мгновенных схем")
+            // первые значения в размер окна rmsWindow это начальное maxRMS пока это просто сумма квадратов
             for ( ii in 0 until rmsWindow){
                 val mod = arrForOneMeshPoint[ii].mod
                 rms += mod.pow(2.0)
@@ -108,9 +102,10 @@ class TrackStat(track: Track, rmsWindow: Int) {
                 }
             }
             var maxRMS = rms
+            // все следующие значения
             for ( ii in rmsWindow until size){
                 val mod = arrForOneMeshPoint[ii].mod
-                rms = rms - arrForOneMeshPoint[ii - rmsWindow].mod.pow(2.0) + mod.pow(2.0)
+                rms = rms - arrForOneMeshPoint[ii - rmsWindow].mod.pow(2.0) + mod.pow(2.0) // плюс текущее значение, минус значение с позицией размера окна назад
                 if (rms > maxRMS) {
                     maxRMS = rms
                 }
@@ -118,8 +113,7 @@ class TrackStat(track: Track, rmsWindow: Int) {
                     maxI[i] = mod.absoluteValue
                 }
             }
-            rmsI[i] = sqrt( maxRMS/rmsWindow )
-
+            rmsI[i] = sqrt( maxRMS/rmsWindow ) // делим на размер окна, извлекаем корень
         }
     }
 }
