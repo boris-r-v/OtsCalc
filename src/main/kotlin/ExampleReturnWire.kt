@@ -53,7 +53,7 @@ fun main() {
      * Зададим расположение и токи ЭПС
      */
     val eps0 = arrayOf( PV(15.0, 400.R), PV(48.0, 300.R) )  // гл. путь1
-    val eps1 = arrayOf( PV(27.0, 500.R) )                         // гл. путь2
+    val eps1 = arrayOf( PV(12.0, 300.R), PV(42.0, 350.R))  // гл. путь2
 
 
     /**
@@ -83,8 +83,8 @@ fun main() {
      */
     val mps = arrayOf(
         Mps(trackRR1, trackRR2, 10.0, 10.0, 0.9e-3.R), /*МПС соединения рельсов гл. путь1 и гл. путь 2*/
-        Mps(trackRR1, trackRR2, 25.0, 25.0, 0.9e-3.R),
-        Mps(trackRR1, trackRR2, 40.0, 40.0, 0.9e-3.R),
+        Mps(trackRR1, trackRR2, 30.0, 30.0, 0.9e-3.R),
+        Mps(trackRR1, trackRR2, 50.0, 50.0, 0.9e-3.R),
 
         Mps(trackRR1, trackOP1, 10.0, 10.0, 1.5e-3.R), /*МПС соединения ОП и рельсов гл. пути1*/
         Mps(trackRR1, trackOP1, 15.0, 15.0, 1.5e-3.R),
@@ -93,6 +93,8 @@ fun main() {
         Mps(trackRR1, trackOP1, 30.0, 30.0, 1.5e-3.R),
         Mps(trackRR1, trackOP1, 35.0, 35.0, 1.5e-3.R),
         Mps(trackRR1, trackOP1, 40.0, 40.0, 1.5e-3.R),
+        Mps(trackRR1, trackOP1, 45.0, 45.0, 1.5e-3.R),
+        Mps(trackRR1, trackOP1, 50.0, 50.0, 1.5e-3.R),
 
         Mps(trackRR2, trackOP2, 10.0, 10.0, 1.5e-3.R), /*МПС соединения ОП и рельсов гл. пути2*/
         Mps(trackRR2, trackOP2, 15.0, 15.0, 1.5e-3.R),
@@ -101,6 +103,8 @@ fun main() {
         Mps(trackRR2, trackOP2, 30.0, 30.0, 1.5e-3.R),
         Mps(trackRR2, trackOP2, 35.0, 35.0, 1.5e-3.R),
         Mps(trackRR2, trackOP2, 40.0, 40.0, 1.5e-3.R),
+        Mps(trackRR2, trackOP2, 45.0, 45.0, 1.5e-3.R),
+        Mps(trackRR2, trackOP2, 50.0, 50.0, 1.5e-3.R),
     )
 
     /**
@@ -115,15 +119,15 @@ fun main() {
     val relRR_RR=0.0493.R+0.3066.I      //между рельсами разных путей
     val relOP_OP=0.0493.R+0.2466.I      //между ОП разных путей
     val relRR_OP_same=0.0493.R+0.2918.I      //между рельсами и ОП одного пути
-    val relRR_OP_differ=0.0493.R+0.2615.I      //между рельсами и ОП одного пути
+    val relRR_OP_differ=0.0493.R+0.2615.I      //между рельсами и ОП разных путей
     val relativeResist = RelativeResist()   //объект хранит междупутные сопротивления
     val meshRelativeResist = MeshRelativeResist( mutableMapOf(
         MRRKey(trackRR1, trackRR2) to arrayOf(PV(8.0, relRR_RR)),   // между рельсами путей 1 и 2
         MRRKey(trackOP1, trackOP2) to arrayOf(PV(8.0, relOP_OP)), // между ОП путей 1 и 2
         MRRKey(trackOP1, trackRR1) to arrayOf(PV(8.0, relRR_OP_same)), // между ОП и рельсами путь1
         MRRKey(trackOP2, trackRR2) to arrayOf(PV(8.0, relRR_OP_same)), // между ОП и рельсами путь2
-        MRRKey(trackOP1, trackRR2) to arrayOf(PV(8.0, relRR_OP_differ)), // между рельсами путь1 и ОП путь2 - он же берется и при сочетании ОП путь1 и Рельсы путь 2
-    ))
+        MRRKey(trackOP1, trackRR2) to arrayOf(PV(8.0, relRR_OP_differ)), // между рельсами путь1 и ОП путь2
+        MRRKey(trackOP2, trackRR1) to arrayOf(PV(8.0, relRR_OP_differ))))//он же берется и при сочетании ОП путь2 и Рельсы путь1
     relativeResist.set(meshRelativeResist)
 
     /**
@@ -140,21 +144,12 @@ fun main() {
         arrayOf(mesh0),                                 /*массив сеток*/
         relativeResist,                                 /*массив межупутных сопротивдления*/
     )
-    calc.calcOts()
-    /**
-     * Класс сбора статистики
-     * Собирает по всем рассчитанным мгновенным схемам:
-     *  1. максимальные и минимальные напряжения в каждом узле сетки
-     *  2. Среднее и стандартное отклонение напряжения в каждом ущле сетки
-     *  3. Средние положительные значения напряжения в каждом узле сетки
-     *  4. RMS тока по каждому узлу сетки
-     */
-    val dt = Data(  arrayOf(trackRR1,trackRR2,trackOP1,trackOP2) )
-    dt.print(0)
-    /**
-     * Сохраним в файл результаты обработки всех мгновенных схем по главному первому пути (track0 в данном случае)
-     * Результат в виде двумерного массива. Столбец - это параметр (средне, макисмум и т.д.), сторока - это элемент сетки
-     */
-    dt.write2csv("./trackOP.csv", 0)
+    calc.calcOts()  // расчет мгновенной схемы
+    //вывод на экран модулей напряжений и токов каждого track по сетке
+    for (tr in calc.tracks){
+        println(tr.name) //название
+        println(tr.U.mod().contentDeepToString())  // напряжение
+        println(tr.I.mod().contentDeepToString())  // ток
+    }
 
 }
