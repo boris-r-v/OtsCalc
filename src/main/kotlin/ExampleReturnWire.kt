@@ -42,8 +42,8 @@ fun main() {
     /**
      * Зададим переходное сопротивление на землю для рельсов и ОП главных путей
      */
-    val rp_RR = arrayOf( PV(8.0, 20.R) ) // рельсы
-    val rp_OP = arrayOf( PV(8.0, 5.R) ) // ОП
+    val rp_RR = arrayOf( PV(8.0, 20.0.R) ) // рельсы
+    val rp_OP = arrayOf( PV(8.0, 5.0.R) ) // ОП
     /**
      * Зададим расположение и токи фидеров отсоса для данной мгновенной схемы
      */
@@ -81,30 +81,32 @@ fun main() {
      * координаты, в которых соединяет track
      * сопротивление соединителя
      */
+    var Rmps_RR=0.9e-3.R
+    var Rmps_OP=1.5e-3.R
     val mps = arrayOf(
-        Mps(trackRR1, trackRR2, 10.0, 10.0, 0.9e-3.R), /*МПС соединения рельсов гл. путь1 и гл. путь 2*/
-        Mps(trackRR1, trackRR2, 30.0, 30.0, 0.9e-3.R),
-        Mps(trackRR1, trackRR2, 50.0, 50.0, 0.9e-3.R),
+        Mps(trackRR1, trackRR2, 10.0, 10.0, Rmps_RR), /*МПС соединения рельсов гл. путь1 и гл. путь 2*/
+        Mps(trackRR1, trackRR2, 30.0, 30.0, Rmps_RR),
+        Mps(trackRR1, trackRR2, 50.0, 50.0, Rmps_RR),
 
-        Mps(trackRR1, trackOP1, 10.0, 10.0, 1.5e-3.R), /*МПС соединения ОП и рельсов гл. пути1*/
-        Mps(trackRR1, trackOP1, 15.0, 15.0, 1.5e-3.R),
-        Mps(trackRR1, trackOP1, 20.0, 20.0, 1.5e-3.R),
-        Mps(trackRR1, trackOP1, 25.0, 25.0, 1.5e-3.R),
-        Mps(trackRR1, trackOP1, 30.0, 30.0, 1.5e-3.R),
-        Mps(trackRR1, trackOP1, 35.0, 35.0, 1.5e-3.R),
-        Mps(trackRR1, trackOP1, 40.0, 40.0, 1.5e-3.R),
-        Mps(trackRR1, trackOP1, 45.0, 45.0, 1.5e-3.R),
-        Mps(trackRR1, trackOP1, 50.0, 50.0, 1.5e-3.R),
+        Mps(trackRR1, trackOP1, 10.0, 10.0, Rmps_OP), /*МПС соединения ОП и рельсов гл. пути1*/
+        Mps(trackRR1, trackOP1, 15.0, 15.0, Rmps_OP),
+        Mps(trackRR1, trackOP1, 20.0, 20.0, Rmps_OP),
+        Mps(trackRR1, trackOP1, 25.0, 25.0, Rmps_OP),
+        Mps(trackRR1, trackOP1, 30.0, 30.0, Rmps_OP),
+        Mps(trackRR1, trackOP1, 35.0, 35.0, Rmps_OP),
+        Mps(trackRR1, trackOP1, 40.0, 40.0, Rmps_OP),
+        Mps(trackRR1, trackOP1, 45.0, 45.0, Rmps_OP),
+        Mps(trackRR1, trackOP1, 50.0, 50.0, Rmps_OP),
 
-        Mps(trackRR2, trackOP2, 10.0, 10.0, 1.5e-3.R), /*МПС соединения ОП и рельсов гл. пути2*/
-        Mps(trackRR2, trackOP2, 15.0, 15.0, 1.5e-3.R),
-        Mps(trackRR2, trackOP2, 20.0, 20.0, 1.5e-3.R),
-        Mps(trackRR2, trackOP2, 25.0, 25.0, 1.5e-3.R),
-        Mps(trackRR2, trackOP2, 30.0, 30.0, 1.5e-3.R),
-        Mps(trackRR2, trackOP2, 35.0, 35.0, 1.5e-3.R),
-        Mps(trackRR2, trackOP2, 40.0, 40.0, 1.5e-3.R),
-        Mps(trackRR2, trackOP2, 45.0, 45.0, 1.5e-3.R),
-        Mps(trackRR2, trackOP2, 50.0, 50.0, 1.5e-3.R),
+        Mps(trackRR2, trackOP2, 10.0, 10.0, Rmps_OP), /*МПС соединения ОП и рельсов гл. пути2*/
+        Mps(trackRR2, trackOP2, 15.0, 15.0, Rmps_OP),
+        Mps(trackRR2, trackOP2, 20.0, 20.0, Rmps_OP),
+        Mps(trackRR2, trackOP2, 25.0, 25.0, Rmps_OP),
+        Mps(trackRR2, trackOP2, 30.0, 30.0, Rmps_OP),
+        Mps(trackRR2, trackOP2, 35.0, 35.0, Rmps_OP),
+        Mps(trackRR2, trackOP2, 40.0, 40.0, Rmps_OP),
+        Mps(trackRR2, trackOP2, 45.0, 45.0, Rmps_OP),
+        Mps(trackRR2, trackOP2, 50.0, 50.0, Rmps_OP),
     )
 
     /**
@@ -116,10 +118,11 @@ fun main() {
      *    Взаимное сопротивление реализовано через классы RelativeResist и MeshRelativeResist
      */
     /*взаимные сопротивления между разными track*/
-    val relRR_RR=0.0493.R+0.3066.I      //между рельсами разных путей
-    val relOP_OP=0.0493.R+0.2466.I      //между ОП разных путей
-    val relRR_OP_same=0.0493.R+0.2918.I      //между рельсами и ОП одного пути
-    val relRR_OP_differ=0.0493.R+0.2615.I      //между рельсами и ОП разных путей
+    val k_rel=1.0
+    val relRR_RR=(0.0493.R+0.3066.I)*k_rel      //между рельсами разных путей
+    val relOP_OP=(0.0493.R+0.2466.I)*k_rel     //между ОП разных путей
+    val relRR_OP_same=(0.0493.R+0.2918.I)*k_rel      //между рельсами и ОП одного пути
+    val relRR_OP_differ=(0.0493.R+0.2615.I)*k_rel      //между рельсами и ОП разных путей
     val relativeResist = RelativeResist()   //объект хранит междупутные сопротивления
     val meshRelativeResist = MeshRelativeResist( mutableMapOf(
         MRRKey(trackRR1, trackRR2) to arrayOf(PV(8.0, relRR_RR)),   // между рельсами путей 1 и 2
@@ -138,18 +141,22 @@ fun main() {
      *      Наведенные в рельсах напряжения от контактной подвески
      * -  задают одну мгновенную схему которую можно рассчитать запустив calcOts()
      */
+    println(" --------------Инициализация ОТС. Расчет влиян МПС--------------------------")
     val calc = Compute (
         arrayOf(trackRR1,trackRR2,trackOP1,trackOP2),    /*массив путей*/
         mps,                                             /*массив междупутных соедитнителей*/
         arrayOf(mesh0),                                 /*массив сеток*/
         relativeResist,                                 /*массив межупутных сопротивдления*/
     )
+
+    println(" ---------------------------Расчет мгновенной схемы---------------------------------------")
+    println(" ")
+    println(" ")
     calc.calcOts()  // расчет мгновенной схемы
     //вывод на экран модулей напряжений и токов каждого track по сетке
-    for (tr in calc.tracks){
-        println(tr.name) //название
-        println(tr.U.mod().contentDeepToString())  // напряжение
-        println(tr.I.mod().contentDeepToString())  // ток
+    mesh0.X.forEachIndexed{i,value ->
+        println(trackRR1.U[i].mod.toString()+", "+trackRR1.I[i].mod.toString()+", "+trackRR2.U[i].mod.toString()+", "+trackRR2.I[i].mod.toString()+", "
+        +trackOP1.U[i].mod.toString()+", "+trackOP1.I[i].mod.toString()+", "+trackOP2.U[i].mod.toString()+", "+trackOP2.I[i].mod.toString())
     }
 
 }
