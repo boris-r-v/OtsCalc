@@ -88,7 +88,7 @@ class Compute(
         var bNotConverg =true          // признак сходимость не достигнута
         var k =0                       // счетчик итераций
         var Converg: Double=1.0            // предел относительная сходимость среднего напряжения
-        var k_rlU=computingSettings.initCoefrlU // коэф от наведенного напряжения в track от других track. От 0 до 1. Начинаем с начального в нсатрйоках
+        var krlU=computingSettings.initCoefrlU // коэф от наведенного напряжения в track от других track. От 0 до 1. Начинаем с начального в нсатрйоках
 
         // обнуление всех наводимых напряжений от других путей в группе
         for (tr in mesh.tracks) {
@@ -104,12 +104,12 @@ class Compute(
         }
         avrAbsUold=avrAbsU                  // принимаем это за значение на прошлой итерации
         // цикл по условию увеличнения коэффициента пропорц от наведенного напряжения k_rlU
-        while (k_rlU.mod<=1.0){
+        while (krlU.mod<=1.0){
             //println("k_rlU="+k_rlU.mod)
             bNotConverg =true // условие сходимости по среднему абсолютному напряжению
             k = 0 // обнуляем счетчик итерации для вложенного цикла по условию (bIter and bNotConverg)
             // расчет напряжений и токов по условию пока не будет исчерпано число итераций или не достигнута сходимость
-            while (bIter and bNotConverg) { // цикл по условию
+            while (bIter and bNotConverg and (k<1)) { // цикл по условию
                 // расчет наведенных напряжений вдоль пути от токов в рельсах в группе
                 for (tr in mesh.tracks) {
                     //обнуляем у данного пути наводимые напряжения от других путей в группе
@@ -120,7 +120,7 @@ class Compute(
                     for (tr2 in mesh.tracks) {
                         if (tr != tr2) {  // условие путь не наводит сам на себя
                             val rlR = relres.get(tr.mesh, tr, tr2) //получение взаимных сопротивлений по сетке
-                            tr.rlU = tr.rlU - tr2.I * rlR* k_rlU // считаем наведенное напряжение от других путей с учетом коэффициента k_rlU
+                            tr.rlU = tr.rlU - tr2.I * rlR * krlU // считаем наведенное напряжение от других путей с учетом коэффициента k_rlU
                         }
                     }
                 }
@@ -141,9 +141,9 @@ class Compute(
                 avrAbsUold = avrAbsU                  // обновляем значение на прошлой итерации
                 }
             // увеличиваем k_rlU на величину в настройках
-            k_rlU = k_rlU + computingSettings.stepCoefrlU
+            krlU = krlU+ computingSettings.stepCoefrlU
         }
-        println("k=" + k + ", k_rlU="+(k_rlU-computingSettings.stepCoefrlU).mod+", avrAbsU=" + avrAbsU + ", Converg=" + Converg)
+        println("k=" + k + ", k_rlU="+(krlU-computingSettings.stepCoefrlU).mod+", avrAbsU=" + avrAbsU + ", Converg=" + Converg)
     }
 
     /**
@@ -161,6 +161,9 @@ class Compute(
      * Фукция расчета коэффициентов влиияния МПС от них самих
      */
     private fun evalAXFind(): Array<Array<Real>>{
+        computingSettings.initCoefrlU=0.009.R
+        computingSettings.stepCoefrlU=0.01.R
+        computingSettings.relativeConvergence=0.0001
         val out = Array(mpss.size) { Array(mpss.size){0.R} }
         val current = 1000.0.R  // уловный ток МПС для определения коэффициентов влияния
         var u1: Array<Real>
@@ -204,6 +207,9 @@ class Compute(
                 zerosUinMesh(mps.endTrack.mesh)
             }
         }
+        //computingSettings.initCoefrlU=0.049.R
+        //computingSettings.stepCoefrlU=0.025.R
+        //computingSettings.relativeConvergence=0.001
         return out
     }
     /**
@@ -359,11 +365,69 @@ class Compute(
         //println("I_mps:, ${initIPoisk.contentToString()} ")
         mpsI = initIPoisk // заносим токи в МПС в массивы родительского класса
         evalNodeFromAllI()
-        zerosVectorB()
         if (convergenceNotAchieved) {
             errorsAndMessages.solverError = true
             errorsAndMessages.messegSolverError = "Превышено максимальное число итераций равное " + computingSettings.maxIterNumber + " заданная сходимость (сред невязка по напряжен) равная " + computingSettings.convergenceU + " не достигнута."
         }
+        //clarificationIPoisk()
+        zerosVectorB()
+        return !convergenceNotAchieved // возврат обратное к несходимости: истина если расчёт сошёлся
+    }
+
+    /**
+     * Уточнение IPoisk     *
+     */
+    private fun clarificationIPoisk(): Boolean { // возвращает истина если расчёт сошёлся, ложь в обратном случае
+        val findU = Array(mpss.size){0.R} // массивы напряжений на МПС, которые определяются всеми токами (известными и неизвестными)
+        val residUMps = Array(mpss.size){0.R}
+        var meanResid: Double             // средняя невязка
+        val limitMeanResid = 0.01 //computingSettings.convergenceU     // задаём предельную невязку по достижении которой сходимость из класса computing_settings
+        var dampingFactor = 0.1       //задаём коэффициент демпфирования текущее значение, на него умножается вычисленная по невязке напряжение корректирровка тока
+        var meanResidPred: Double        /* значение невязки по напряжению на предыдущем шаге итераций */
+        var iter = 0
+        val iterMax = 5 // счётчик итераций и максимальное число итераций
+        var counterNotExceeded: Boolean
+        var convergenceNotAchieved: Boolean // непревышение итераций, недостижение сходимости - булевые переменные которые определяют выход из цикла итераций
+        val oldInitCoefrlU=computingSettings.initCoefrlU
+
+        println("-------------Уточнение поисковых токов-------------------")
+        println("0  mpsI="+mpsI.mod().contentDeepToString())
+        //computingSettings.initCoefrlU=0.999.R
+        //нахождение токов в цикле итераций по невязке напряжения на МПС
+        counterNotExceeded = true
+        convergenceNotAchieved = true
+        meanResid = 100.0 //начальное значение средняя невязка до первой итерации
+        while (counterNotExceeded && convergenceNotAchieved) {
+            meanResidPred = meanResid //предыдущая невязка обновление
+            meanResid = 0.0 //текущая невязка скидывается
+            for (i in mpss.indices ) {
+                findU[i] = -mpss[i].endTrack.U[mpss[i].endMeshIdx]+mpss[i].startTrack.U[mpss[i].startMeshIdx] //
+                residUMps[i] = findU[i] - mpsI[i] * mpss[i].resValue//невязка напряжения на МПС, уже изветны напряжения и Р1 и Р2
+                mpsI[i] += dampingFactor * residUMps[i] / (-10 * aXFind[i][i] + mpss[i].resValue) //корректируем текущий поисковый ток пропорционально невязке по напряжению в этом элементе с учётом коэф. демпфирования
+                meanResid += residUMps[i].mod //обновляем невязку
+            }
+            println(iter.toString()+"  residUMps="+residUMps.mod().contentDeepToString())
+            meanResid /= mpss.size //невязка именно средняя
+            //если после первой итерации возрастает средняя невязка mean_resid по сравнению с ней же на предыдущей итерации mean_resid_pred, то коэффициент демпфирования в методе Ньютона уменьшаем в 0.7 раз
+            if (iter > 0) {
+                if (meanResid > meanResidPred  ) { //FIX ME - тут как то по умному нужно считать невязку в комплексной плоскости
+                    dampingFactor *= 0.7
+                }
+            }
+            iter += 1 //обновляем счётчик итераций
+            counterNotExceeded = iter < iterMax  // обновляем булевые переменные выхода из цикла итераций
+            convergenceNotAchieved = meanResid > limitMeanResid
+            println(iter.toString()+"  mpsI="+mpsI.mod().contentDeepToString())
+            evalNodeFromAllI() // просчитываем токи
+            //println("iter=$iter mean_resid=$mean_resid damping_factor=$damping_factor")
+        }
+        computingSettings.currentStateSolver = doubleArrayOf( (iter - 1).toDouble(), meanResid, dampingFactor ) // записываем текущее состояние решателя
+        //println("I_mps:, ${initIPoisk.contentToString()} ")
+        if (convergenceNotAchieved) {
+            errorsAndMessages.solverError = true
+            errorsAndMessages.messegSolverError = "Превышено максимальное число итераций равное " + computingSettings.maxIterNumber + " заданная сходимость (сред невязка по напряжен) равная " + computingSettings.convergenceU + " не достигнута."
+        }
+        computingSettings.initCoefrlU=oldInitCoefrlU
         return !convergenceNotAchieved // возврат обратное к несходимости: истина если расчёт сошёлся
     }
     /**

@@ -68,8 +68,9 @@ fun main() {
      *  Каждому пути указываем его секту, погонное продольное и переходное сопротивление, расположение отсосов(при наличии) ЭПС (при наличии), наведенные напряжения от КС.
      *  Указываем нужно ли рассчитывать сопротивления по границам сетки или они заданы явно, поля iRv0, iRvn
      */
+    val Rv=10000.0.R
     val trackRR1 = Track("RR1", mesh0, r_RR, rp_RR, fot0, eps0, null, null, u0 )      // рельсы гл. путь1
-    val trackRR2 = Track("RR2", mesh0, r_RR, rp_RR, emp,  eps1,  null, null, u0)      // рельсы гл. путь2
+    val trackRR2 = Track("RR2", mesh0, r_RR, rp_RR, emp,  eps1, null, null, u0)      // рельсы гл. путь2
     val trackOP1 = Track("OP1", mesh0, r_OP, rp_OP, emp, emp, null, null, u0 )      // рельсы гл. путь1
     val trackOP2 = Track("OP2", mesh0, r_OP, rp_OP, emp,  emp,  null, null, u0)      // рельсы гл. путь2
 
@@ -154,9 +155,11 @@ fun main() {
     println(" ")
     calc.calcOts()  // расчет мгновенной схемы
     //вывод на экран модулей напряжений и токов каждого track по сетке
-    mesh0.X.forEachIndexed{i,value ->
-        println(trackRR1.U[i].mod.toString()+", "+trackRR1.I[i].mod.toString()+", "+trackRR2.U[i].mod.toString()+", "+trackRR2.I[i].mod.toString()+", "
-        +trackOP1.U[i].mod.toString()+", "+trackOP1.I[i].mod.toString()+", "+trackOP2.U[i].mod.toString()+", "+trackOP2.I[i].mod.toString())
-    }
-
+mesh0.X.forEachIndexed{i,value ->
+    println(trackRR1.U[i].mod.toString()+", "+trackRR1.I[i].mod.toString()+", "+trackRR2.U[i].mod.toString()+", "+trackRR2.I[i].mod.toString()+", "
+    +trackOP1.U[i].mod.toString()+", "+trackOP1.I[i].mod.toString()+", "+trackOP2.U[i].mod.toString()+", "+trackOP2.I[i].mod.toString())
+}
+/*println((calc.getMpsI()[0]*mps[0].resValue).toString())
+println((trackRR1.U[mps[0].startMeshIdx]-trackRR2.U[mps[0].startMeshIdx]).toString())
+*/
 }
