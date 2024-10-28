@@ -26,7 +26,7 @@ class Compute(
     )
 {
     internal val computingSettings: ComputingSettings = ComputingSettings()
-    private val errorsAndMessages: ErrorsAndMessages = ErrorsAndMessages()
+    internal val errorsAndMessages: ErrorsAndMessages = ErrorsAndMessages()
 
     private val aXFind: Array<Array<Real>> = evalAXFind()
     private var knownU: Array<Real> = Array(1) { 0.R }
