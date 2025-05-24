@@ -4,6 +4,7 @@ import ots.calc.Track
 import ots.complex.Complex
 import ots.complex.R
 import ots.complex.complex
+import ots.complex.mod
 import java.text.DecimalFormat
 import java.text.NumberFormat
 import java.util.*
@@ -25,29 +26,35 @@ private const val X_RIGHT = 100.0
 /**
  * Контрольный пример: 1 МПЗ, только основной ход, до шести гл. путей.
  * @param useIclU использовать значения наведенных напряжений.
+ * @param useMR использовать значения взаимных сопротвилений между путями.
  * @param addMpss добавить МПС в точки присоединения ФОТ. Будут соединены все пути 1->2, 2->3, 3->4 и т.д.
  * @param trackQty количество главных путей [[1, 6]].
  */
-class T6Test(useIclU: Boolean, addMpss: Boolean = false, trackQty: Int = 6) {
+class T6Test(useIclU: Boolean, useMR: Boolean=true, addMpss: Boolean = false, trackQty: Int = 6) {
 
     init {
         require(trackQty in 1..6)
     }
-
+    // Значения токов ФОТ сделал в соответвии с комсол. Сумма токов ФОТ = току ЭПС
     private val eps = arrayOf(PV(X_EPS, complex(236.0, -185.0)))
-    private val fot = arrayOf(PV(X_FOT_L, complex(144.49, 60.99)), PV(X_FOT_R, complex(134.08, 50.8)))
-    private val mesh = Mesh(X_FOT_L, X_FOT_R, 0.1)
+    private val fot = arrayOf(PV(X_FOT_L, complex(110.4, -85.679)), PV(X_FOT_R, complex(125.6, -99.321))) // старые значения  complex(144.49, 60.99)    complex(134.08, 50.8)
+    private val mesh = Mesh(X_FOT_L-2.0, X_FOT_R+2.0, 0.1)
     private val r = arrayOf(PV(X_RIGHT, complex(0.15, 0.705)))
     private val rp = arrayOf(PV(X_RIGHT, complex(10.0, 0.0)))
 
     /** Удельные ЭДС индукции в эквивалентных рельсах от токов в подвесках, В/км. */
     private val iclUs = arrayOf(
-        arrayOf(PV(X_EPS, complex(34.864, 32.744)), PV(X_FOT_R, complex(-33.598, -30.175))),
-        arrayOf(PV(X_EPS, complex(34.237, 31.988)), PV(X_FOT_R, complex(-32.581, -28.836))),
-        arrayOf(PV(X_EPS, complex(31.577, 28.647)), PV(X_FOT_R, complex(-29.049, -24.288))),
-        arrayOf(PV(X_EPS, complex(30.399, 27.134)), PV(X_FOT_R, complex(-27.542, -22.380))),
-        arrayOf(PV(X_EPS, complex(28.498, 24.655)), PV(X_FOT_R, complex(-25.324, -19.612))),
-        arrayOf(PV(X_EPS, complex(27.641, 23.524)), PV(X_FOT_R, complex(-24.487, -18.584)))
+        // Старые значения закоментировалл
+      /*  arrayOf(PV(X_FOT_L, 0.0.R),PV(X_EPS, complex(34.864, 32.744)), PV(X_FOT_R, complex(-33.598, -30.175)),PV(X_FOT_R+0.01, 0.0.R)),
+        arrayOf(PV(X_FOT_L, 0.0.R),PV(X_EPS, complex(34.237, 31.988)), PV(X_FOT_R, complex(-32.581, -28.836)),PV(X_FOT_R+0.01, 0.0.R)),
+        arrayOf(PV(X_FOT_L, 0.0.R),PV(X_EPS, complex(31.577, 28.647)), PV(X_FOT_R, complex(-29.049, -24.288)),PV(X_FOT_R+0.01, 0.0.R)),
+        arrayOf(PV(X_FOT_L, 0.0.R),PV(X_EPS, complex(30.399, 27.134)), PV(X_FOT_R, complex(-27.542, -22.380)),PV(X_FOT_R+0.01, 0.0.R)),
+        arrayOf(PV(X_FOT_L, 0.0.R),PV(X_EPS, complex(28.498, 24.655)), PV(X_FOT_R, complex(-25.324, -19.612)),PV(X_FOT_R+0.01, 0.0.R)),
+        arrayOf(PV(X_FOT_L, 0.0.R),PV(X_EPS, complex(27.641, 23.524)), PV(X_FOT_R, complex(-24.487, -18.584)),PV(X_FOT_R+0.01, 0.0.R))
+       */
+        // Теперь значения наведенки от КС соответствуют комсолу
+        arrayOf(PV(X_FOT_L, 0.0.R),PV(X_EPS, complex(-30.080, -29.340)), PV(X_FOT_R, complex(34.768, 33.311)),PV(X_FOT_R+0.01, 0.0.R)),
+        arrayOf(PV(X_FOT_L, 0.0.R),PV(X_EPS, complex(-29.314, -28.335)), PV(X_FOT_R, complex(33.880, 32.190)),PV(X_FOT_R+0.01, 0.0.R))
     )
     private val tracks = Array(trackQty) { i -> makeTrack(i, useIclU) }
 
@@ -65,7 +72,7 @@ class T6Test(useIclU: Boolean, addMpss: Boolean = false, trackQty: Int = 6) {
         val m = mutableMapOf<MRRKey, Array<PV>>()
         for (i in 0..trackQty - 2) {
             for (j in i + 1 until trackQty) {
-                val (mrr, pvs) = makeMrrPair(i, j)
+                val (mrr, pvs) = makeMrrPair(i, j, useMR)
                 m[mrr] = pvs
             }
         }
@@ -78,13 +85,14 @@ class T6Test(useIclU: Boolean, addMpss: Boolean = false, trackQty: Int = 6) {
         tracks = tracks,
         mpss = if (addMpss) mpss.toTypedArray() else emptyArray(),
         meshes = arrayOf(mesh),
-        relres = relres
+        relres =  relres
     ).apply {
         println(calcOts())
         check(!errorsAndMessages.solverError) {
             "Ошибка в ходе выполнения расчета ОТС: ${errorsAndMessages.messegSolverError}"
         }
     }
+
 
     /**
      * Распечатать результаты расчёта.
@@ -95,6 +103,7 @@ class T6Test(useIclU: Boolean, addMpss: Boolean = false, trackQty: Int = 6) {
         printCoordinates(solver.tracks.first().mesh.X, fmt)
         printDataArrays("amps", solver.tracks.map { it.I }, fmt)
         printDataArrays("volts", solver.tracks.map { it.U }, fmt)
+        println("Imps= "+solver.getMpsI().mod().contentDeepToString())
     }
 
     private val fmt = DecimalFormat.getNumberInstance(Locale("en")).apply {
@@ -104,7 +113,7 @@ class T6Test(useIclU: Boolean, addMpss: Boolean = false, trackQty: Int = 6) {
     private fun printDataArrays(name: String, arrays: List<Array<Complex>>, fmt: NumberFormat) {
         println("$name = [")
         for (a in arrays) {
-            print("    [")
+            print(" [")
             a.forEach { z -> print(fmt.format(z.mod)); print(", ") }
             print("],\n")
         }
@@ -124,9 +133,9 @@ class T6Test(useIclU: Boolean, addMpss: Boolean = false, trackQty: Int = 6) {
         return Track((idx + 1).toString(), mesh, r, rp, f, e, iclU = iclU)
     }
 
-    private fun makeMrrPair(t1: Int, t2: Int): Pair<MRRKey, Array<PV>> {
-        val ra = 0.05
-        val rr = mutualReactiveRailResistivities[t1][t2]
+    private fun makeMrrPair(t1: Int, t2: Int, useMR: Boolean): Pair<MRRKey, Array<PV>> {
+        val ra = if (useMR) 0.05 else 0.0
+        val rr = if (useMR) mutualReactiveRailResistivities[t1][t2] else 0.0
         return Pair(
             MRRKey(tracks[t1], tracks[t2]),
             arrayOf(PV(X_RIGHT, complex(ra, rr)))
@@ -135,6 +144,6 @@ class T6Test(useIclU: Boolean, addMpss: Boolean = false, trackQty: Int = 6) {
 }
 
 fun main() {
-    val test = T6Test(true, trackQty = 6)
+    val test = T6Test(true, true,true,trackQty = 2) //расчет с двумя путями, МПС и взаимная индуктивность есть
     test.printResults()
 }

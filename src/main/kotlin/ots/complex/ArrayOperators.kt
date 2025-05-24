@@ -72,3 +72,71 @@ fun Array<Complex>.mod(): Array<Double>{
     }
     return out
 }
+
+
+/**
+ * Функция возвращает обратную матрицу к заданной по методу Гаусса-Жордана
+ * @param mat0 входная комплексная матрица
+ * @return обратная комплексная матрица
+ */
+fun findInvMatGaussJordan(mat0: Array<Array<Complex>>): Array<Array<Complex>> {
+    val order = mat0.size
+    val mat = Array(order) { Array(2 * order) { ZERO } }
+
+    // Заполняем продолженную матрицу: левая часть = mat0, правая часть = единичная матрица
+    for (i in 0 until order) {
+        for (j in 0 until order) {
+            mat[i][j] = mat0[i][j]
+        }
+        mat[i][i + order] = ONE
+    }
+
+    // Прямой ход метода Гаусса-Жордана
+    for (i in 0 until order) {
+        // Поиск строки с максимальным элементом в текущем столбце
+        var maxRow = i
+        for (k in i + 1 until order) {
+            if (mat[k][i].mod > mat[maxRow][i].mod) {
+                maxRow = k
+            }
+        }
+
+        // Перестановка строк, если необходимо
+        if (maxRow != i) {
+            val temp = mat[i]
+            mat[i] = mat[maxRow]
+            mat[maxRow] = temp
+        }
+
+        // Проверка на вырожденность матрицы
+        if (mat[i][i].mod < 1e-10) {
+            return emptyArray()
+        }
+
+        // Нормализация текущей строки
+        val pivot = mat[i][i]
+        for (j in i until 2 * order) {
+            mat[i][j] = mat[i][j] / pivot
+        }
+
+        // Обнуление других элементов в текущем столбце
+        for (k in 0 until order) {
+            if (k != i) {
+                val factor = mat[k][i]
+                for (j in i until 2 * order) {
+                    mat[k][j] = mat[k][j] - mat[i][j] * factor
+                }
+            }
+        }
+    }
+
+    // Извлечение обратной матрицы из правой части
+    val matInv = Array(order) { Array(order) { ZERO } }
+    for (i in 0 until order) {
+        for (j in 0 until order) {
+            matInv[i][j] = mat[i][j + order]
+        }
+    }
+
+    return matInv
+}

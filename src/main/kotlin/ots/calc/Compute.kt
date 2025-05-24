@@ -14,6 +14,7 @@ import kotlin.math.max
  * @param relres - ассоциативный массив взаимных сопротивлений путей принядлежащих одной сетке
  * @property mpsI - массив токов междупутных соединителей МПС и токов отходящих ветвей в местах соединения с главными путями
  * @property aXFind - матрица коэффициентов влияния тока во всех МПС на напряжения во всех МПС Ом. По главной диагонали сами на себя
+ * @property invaXFind - обратная матрица (к aXFind) коэффициентов влияния тока во всех МПС на напряжения во всех МПС, См.
  * @property knownU - массивы разности напряжений от заданных токов в МПС от начальнйо до конечной точки подключения
  * @property computingSettings - настройки расчета
  * @property errorsAndMessages - хранлилище статусов расчета
@@ -29,11 +30,12 @@ class Compute(
     internal val errorsAndMessages: ErrorsAndMessages = ErrorsAndMessages()
 
     private val aXFind: Array<Array<Real>> = evalAXFind()
+    private val invaXFind: Array<Array<Complex>> = evalInvaXFind()
     private var knownU: Array<Real> = Array(1) { 0.R }
     private var mpsI: Array<Real> = Array(1) { 0.R }
     init{
         verifyData(verifyI = true, verifyXfotMps = true, verifyXeps = true) //FIX ME - убрать эту валлидацию в конструкторы объектов с киданием исключений если что-то не так
-        /*Установим массив наведенных напряжений из исходных данных после срасчета матрицы влияним МПС друг на друга*/
+        /*Установим массив наведенных напряжений из исходных данных после расчета матрицы влияния МПС друг на друга*/
         tracks.forEach { it.setClU() }
     }
 
@@ -212,6 +214,20 @@ class Compute(
         //computingSettings.relativeConvergence=0.001
         return out
     }
+
+    /**
+     * Метод прасчитывает обратную матрицу к матрице влияний МПС на МПС*
+     * @return вектор обратна матрица влияний МПС на МПС
+     */
+    private fun evalInvaXFind(): Array<Array<Real>>{
+        var out = aXFind
+        for (i in 0 until mpss.size) { // предварительно вычтем из матрицы коэффициентов влияния сопротивления МПС
+            out[i][i] -= mpss[i].resValue
+        }
+        out = findInvMatGaussJordan(out) // по методу Гаусса-Жордана для комплексных чисел
+        return out
+    }
+
     /**
      * Заполняет вектор правой части по заданному двумерному массиву с коэффициентом тока для точек с одним узлом
      * @param mesh - сетка
