@@ -31,12 +31,17 @@ class Compute(
 
     private val aXFind: Array<Array<Real>> = evalAXFind()
     private val invaXFind: Array<Array<Complex>> = evalInvaXFind()
-    private var knownU: Array<Real> = Array(1) { 0.R }
-    private var mpsI: Array<Real> = Array(1) { 0.R }
+    private var knownU: Array<Real> = Array(mpss.size) { 0.R }
+    private var mpsI: Array<Real> = Array(mpss.size) { 0.R }
     init{
         verifyData(verifyI = true, verifyXfotMps = true, verifyXeps = true) //FIX ME - убрать эту валлидацию в конструкторы объектов с киданием исключений если что-то не так
         /*Установим массив наведенных напряжений из исходных данных после расчета матрицы влияния МПС друг на друга*/
         tracks.forEach { it.setClU() }
+
+//        println("invaXFind=")
+//        for (i in 0 until mpss.size) { // предварительно вычтем из матрицы коэффициентов влияния сопротивления МПС
+//            println(invaXFind[i].contentDeepToString())
+//        }
     }
 
     /**
@@ -221,7 +226,7 @@ class Compute(
      */
     private fun evalInvaXFind(): Array<Array<Real>>{
         var out = aXFind
-        for (i in 0 until mpss.size) { // предварительно вычтем из матрицы коэффициентов влияния сопротивления МПС
+        for (i in mpss.indices) { // предварительно вычтем из матрицы коэффициентов влияния сопротивления МПС
             out[i][i] -= mpss[i].resValue
         }
         out = findInvMatGaussJordan(out) // по методу Гаусса-Жордана для комплексных чисел
@@ -269,9 +274,9 @@ class Compute(
             tr.vectorB = valuesVectorB1node(tr.mesh, tr.vectorB, tr.fot, (-1.0).R) // в точках ФОТ ток в одном узле с минусом
             tr.vectorB = valuesVectorB2node(tr.mesh, tr.vectorB, tr.eps, 1.0.R ) // в точках ЭПС ток  в двух ближайших узлах
          }
-        // производим расчет напряжений и тококв в группах путей по единой сетке
+        // производим расчет напряжений и токов в группах путей по единой сетке
         for (mesh in meshes){
-            println("traks="+mesh.tracks)
+            //println("traks="+mesh.tracks)
             callTracksUnionMesh( mesh)
         }
 
@@ -319,16 +324,13 @@ class Compute(
      */
     fun calcOts(): Boolean {
         val initMpsI = Array(mpss.size){0.R}
-        val ret = calcIPoisk(initMpsI)
+        //val ret = calcIPoisk(initMpsI)
+        val ret = calcIPoisk_invMat()
         tracks.forEach { it.copy2Hist() }
         return ret
     }
-    /**
-     * По сути рассчитывает токи в поисковых точках: МПС. После этого все граничные условия во всех точках с втекающим током определены
-     * Расчёт каждого поискового тока сводится к вычислению невязки напряжения на данном элементе и по величине невязки корректируется ток элемента
-     * По сути рассчитывается алгебраическая система уравнений методом Ньютона в цикле итераций
-     */
-    private fun calcIPoisk(initIPoisk: Array<Real>): Boolean { // возвращает истина если расчёт сошёлся, ложь в обратном случае
+
+    private fun сheckBeforeIPoisk() : Boolean {
         errorsAndMessages.resetSolverError() //обнулим ошибки решателя
         errorsAndMessages.calcCompleted = true
         verifyData(verifyI = false, verifyXfotMps = false, verifyXeps = true) // проверка исходных данных только координ ЭПС, т.к. остальное проверено при инициализации
@@ -336,6 +338,17 @@ class Compute(
         if (errorsAndMessages.dataError) { //проверка если данные корректны
             errorsAndMessages.solverError = true
             errorsAndMessages.messegSolverError = "Расчёт невозможен. Ошибка исходных данных"
+            return false
+        }
+        return true
+    }
+        /**
+     * По сути рассчитывает токи в поисковых точках: МПС. После этого все граничные условия во всех точках с втекающим током определены
+     * Расчёт каждого поискового тока сводится к вычислению невязки напряжения на данном элементе и по величине невязки корректируется ток элемента
+     * По сути рассчитывается алгебраическая система уравнений методом Ньютона в цикле итераций
+     */
+    private fun calcIPoisk(initIPoisk: Array<Real>): Boolean { // возвращает истина если расчёт сошёлся, ложь в обратном случае
+        if (!сheckBeforeIPoisk()) {
             return false
         }
         val findU = Array(mpss.size){0.R} // массивы напряжений на МПС, которые определяются всеми токами (известными и неизвестными)
@@ -375,11 +388,11 @@ class Compute(
             iter += 1 //обновляем счётчик итераций
             counterNotExceeded = iter < iterMax  // обновляем булевые переменные выхода из цикла итераций
             convergenceNotAchieved = meanResid > limitMeanResid
-            //println("iter=$iter mean_resid=$mean_resid damping_factor=$damping_factor")
+            //println("iter=$iter mean_resid=$meanResid damping_factor=$dampingFactor")
         }
         computingSettings.currentStateSolver = doubleArrayOf( (iter - 1).toDouble(), meanResid, dampingFactor ) // записываем текущее состояние решателя
-        //println("I_mps:, ${initIPoisk.contentToString()} ")
         mpsI = initIPoisk // заносим токи в МПС в массивы родительского класса
+        println("I_mps:, ${mpsI.contentToString()} ")
         evalNodeFromAllI()
         if (convergenceNotAchieved) {
             errorsAndMessages.solverError = true
@@ -388,6 +401,27 @@ class Compute(
         //clarificationIPoisk()
         zerosVectorB()
         return !convergenceNotAchieved // возврат обратное к несходимости: истина если расчёт сошёлся
+    }
+
+    /**
+     * По сути рассчитывает токи в поисковых точках: МПС через обртаную матрицу. По сути прямой решатель
+     */
+    private fun calcIPoisk_invMat(): Boolean { // возвращает истина если расчёт сошёлся, ложь в обратном случае
+        if (!сheckBeforeIPoisk()) {
+            return false
+        }
+        evalKnownU() // рассчитываем напряжения на МПС от заданных токов ФОТ и ЭПС
+        //нахождение токов в цикле итераций по невязке напряжения на МПС
+        for (i in mpss.indices) {
+            mpsI[i] = 0.R // предварительно ток МПС =0, чтобы начать с нуля
+            for (j in mpss.indices) {  //умножение строки на столбец
+                mpsI[i] -= invaXFind[i][j] * knownU[j] //  this.I_mps[i] += -this.inv_a_x_find[j][i]*this.U_const[j];
+                }
+        }
+        println("I_mps:, ${mpsI.contentToString()} ")
+        evalNodeFromAllI()
+        zerosVectorB()
+        return true // возврат обратное к несходимости: истина если расчёт сошёлся
     }
 
     /**

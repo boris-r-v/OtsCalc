@@ -90,7 +90,6 @@ fun findInvMatGaussJordan(mat0: Array<Array<Complex>>): Array<Array<Complex>> {
         }
         mat[i][i + order] = ONE
     }
-
     // Прямой ход метода Гаусса-Жордана
     for (i in 0 until order) {
         // Поиск строки с максимальным элементом в текущем столбце
@@ -100,25 +99,21 @@ fun findInvMatGaussJordan(mat0: Array<Array<Complex>>): Array<Array<Complex>> {
                 maxRow = k
             }
         }
-
         // Перестановка строк, если необходимо
         if (maxRow != i) {
             val temp = mat[i]
             mat[i] = mat[maxRow]
             mat[maxRow] = temp
         }
-
         // Проверка на вырожденность матрицы
         if (mat[i][i].mod < 1e-10) {
             return emptyArray()
         }
-
         // Нормализация текущей строки
         val pivot = mat[i][i]
         for (j in i until 2 * order) {
             mat[i][j] = mat[i][j] / pivot
         }
-
         // Обнуление других элементов в текущем столбце
         for (k in 0 until order) {
             if (k != i) {
@@ -129,7 +124,6 @@ fun findInvMatGaussJordan(mat0: Array<Array<Complex>>): Array<Array<Complex>> {
             }
         }
     }
-
     // Извлечение обратной матрицы из правой части
     val matInv = Array(order) { Array(order) { ZERO } }
     for (i in 0 until order) {
@@ -137,6 +131,37 @@ fun findInvMatGaussJordan(mat0: Array<Array<Complex>>): Array<Array<Complex>> {
             matInv[i][j] = mat[i][j + order]
         }
     }
-
     return matInv
+}
+
+/**
+ * Функция реализует матричное умножение двух комплексных матриц
+ * @param matrixA - комплексная матрица
+ * @param matrixB - комплексная матрица
+ * @return обратная комплексная матрица
+ */
+fun multiplyComplexMatrices(
+    matrixA: Array<Array<Complex>>,
+    matrixB: Array<Array<Complex>>
+): Array<Array<Complex>> {
+    // Проверка совместимости размеров матриц
+    val aRows = matrixA.size
+    val aCols = matrixA[0].size
+    val bRows = matrixB.size
+    val bCols = matrixB[0].size
+
+    if (aCols != bRows) return emptyArray()
+    // Создание результирующей матрицы
+    val result = Array(aRows) { Array(bCols) { ZERO } }
+    // Вычисление произведения матриц
+    for (i in 0 until aRows) {
+        for (j in 0 until bCols) {
+            var sum = ZERO
+            for (k in 0 until aCols) {
+                sum += matrixA[i][k] * matrixB[k][j]
+            }
+            result[i][j] = sum
+        }
+    }
+    return result
 }
