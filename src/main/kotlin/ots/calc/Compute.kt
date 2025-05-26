@@ -323,9 +323,13 @@ class Compute(
      * После расчета производится копирование текущих значений U, I в узлах сетки в массивы исторических значений
      */
     fun calcOts(): Boolean {
-        val initMpsI = Array(mpss.size){0.R}
-        //val ret = calcIPoisk(initMpsI)
-        val ret = calcIPoisk_invMat()
+        var ret: Boolean
+        if (computingSettings.isDirectSolver) {  // прямой решатель токов МПС
+            ret = calcIPoisk_invMat()
+        }
+        else {   // итерационный решатель токов МПС
+            ret = calcIPoisk(Array(mpss.size){0.R})
+        }
         tracks.forEach { it.copy2Hist() }
         return ret
     }

@@ -153,6 +153,7 @@ fun main() {
     println(" ---------------------------Расчет мгновенной схемы---------------------------------------")
     println(" ")
     println(" ")
+    //calc.computingSettings.isDirectSolver=false  // итерационный решатель для проверки
     calc.calcOts()  // расчет мгновенной схемы
     //вывод на экран модулей напряжений и токов каждого track по сетке
 mesh0.X.forEachIndexed{i,value ->

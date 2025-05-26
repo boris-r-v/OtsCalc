@@ -44,17 +44,17 @@ class T6Test(useIclU: Boolean, useMR: Boolean=true, addMpss: Boolean = false, tr
 
     /** Удельные ЭДС индукции в эквивалентных рельсах от токов в подвесках, В/км. */
     private val iclUs = arrayOf(
-        // Старые значения закоментировалл
-        arrayOf(PV(X_FOT_L, 0.0.R),PV(X_EPS, complex(34.864, 32.744)), PV(X_FOT_R, complex(-33.598, -30.175)),PV(X_FOT_R+0.01, 0.0.R)),
-        arrayOf(PV(X_FOT_L, 0.0.R),PV(X_EPS, complex(34.237, 31.988)), PV(X_FOT_R, complex(-32.581, -28.836)),PV(X_FOT_R+0.01, 0.0.R)),
-        arrayOf(PV(X_FOT_L, 0.0.R),PV(X_EPS, complex(31.577, 28.647)), PV(X_FOT_R, complex(-29.049, -24.288)),PV(X_FOT_R+0.01, 0.0.R)),
-        arrayOf(PV(X_FOT_L, 0.0.R),PV(X_EPS, complex(30.399, 27.134)), PV(X_FOT_R, complex(-27.542, -22.380)),PV(X_FOT_R+0.01, 0.0.R)),
-        arrayOf(PV(X_FOT_L, 0.0.R),PV(X_EPS, complex(28.498, 24.655)), PV(X_FOT_R, complex(-25.324, -19.612)),PV(X_FOT_R+0.01, 0.0.R)),
-        arrayOf(PV(X_FOT_L, 0.0.R),PV(X_EPS, complex(27.641, 23.524)), PV(X_FOT_R, complex(-24.487, -18.584)),PV(X_FOT_R+0.01, 0.0.R))
+//        // Старые значения закоментировалл
+//        arrayOf(PV(X_FOT_L, 0.0.R),PV(X_EPS, complex(34.864, 32.744)), PV(X_FOT_R, complex(-33.598, -30.175)),PV(X_FOT_R+0.01, 0.0.R)),
+//        arrayOf(PV(X_FOT_L, 0.0.R),PV(X_EPS, complex(34.237, 31.988)), PV(X_FOT_R, complex(-32.581, -28.836)),PV(X_FOT_R+0.01, 0.0.R)),
+//        arrayOf(PV(X_FOT_L, 0.0.R),PV(X_EPS, complex(31.577, 28.647)), PV(X_FOT_R, complex(-29.049, -24.288)),PV(X_FOT_R+0.01, 0.0.R)),
+//        arrayOf(PV(X_FOT_L, 0.0.R),PV(X_EPS, complex(30.399, 27.134)), PV(X_FOT_R, complex(-27.542, -22.380)),PV(X_FOT_R+0.01, 0.0.R)),
+//        arrayOf(PV(X_FOT_L, 0.0.R),PV(X_EPS, complex(28.498, 24.655)), PV(X_FOT_R, complex(-25.324, -19.612)),PV(X_FOT_R+0.01, 0.0.R)),
+//        arrayOf(PV(X_FOT_L, 0.0.R),PV(X_EPS, complex(27.641, 23.524)), PV(X_FOT_R, complex(-24.487, -18.584)),PV(X_FOT_R+0.01, 0.0.R))
 
         // Теперь значения наведенки от КС соответствуют комсолу
-//        arrayOf(PV(X_FOT_L, 0.0.R),PV(X_EPS, complex(-30.080, -29.340)), PV(X_FOT_R, complex(34.768, 33.311)),PV(X_FOT_R+0.01, 0.0.R)),
-//        arrayOf(PV(X_FOT_L, 0.0.R),PV(X_EPS, complex(-29.314, -28.335)), PV(X_FOT_R, complex(33.880, 32.190)),PV(X_FOT_R+0.01, 0.0.R))
+        arrayOf(PV(X_FOT_L, 0.0.R),PV(X_EPS, complex(-30.080, -29.340)), PV(X_FOT_R, complex(34.768, 33.311)),PV(X_FOT_R+0.01, 0.0.R)),
+        arrayOf(PV(X_FOT_L, 0.0.R),PV(X_EPS, complex(-29.314, -28.335)), PV(X_FOT_R, complex(33.880, 32.190)),PV(X_FOT_R+0.01, 0.0.R))
     )
     private val tracks = Array(trackQty) { i -> makeTrack(i, useIclU) }
 
@@ -144,6 +144,6 @@ class T6Test(useIclU: Boolean, useMR: Boolean=true, addMpss: Boolean = false, tr
 }
 
 fun main() {
-    val test = T6Test(true, true,true,trackQty = 6) //расчет с двумя путями, МПС и взаимная индуктивность есть
+    val test = T6Test(true, true,true,trackQty = 2) //расчет с двумя путями, МПС и взаимная индуктивность есть
     test.printResults()
 }
