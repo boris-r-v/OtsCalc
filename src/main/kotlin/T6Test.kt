@@ -9,8 +9,8 @@ import java.text.DecimalFormat
 import java.text.NumberFormat
 import java.util.*
 
-private const val empty = Double.NaN
-
+//private const val empty = Double.NaN
+private val empty = Double.NaN
 /** Координата ЭПС, км. */
 private const val X_EPS = 27.845
 

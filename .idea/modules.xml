@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/ots.iml" filepath="$PROJECT_DIR$/ots.iml" />
+      <module fileurl="file://$PROJECT_DIR$/OtsCalc.iml" filepath="$PROJECT_DIR$/OtsCalc.iml" />
     </modules>
   </component>
 </project>
