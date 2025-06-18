@@ -35,7 +35,7 @@ fun main(args: Array<String>) {
                         DT_current(3000.0, 90),
                         DT_current(200.0, 600),
                         DT_current(3000.0, 90),
-                        DT_current(200.0, 3600) )
+                        DT_current(180.0, 36000) )
 
 
     dt_model.calc( arr, writer)
