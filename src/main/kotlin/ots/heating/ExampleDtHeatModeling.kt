@@ -1,12 +1,12 @@
 package ots.heating
 
-class Writer(name: String = "./file.csv"): DtHeatingInfoStorage{
+class Writer(name: String = "./file11.csv"): DtHeatingInfoStorage{
     val writer = java.io.PrintWriter(name)
     init {
-        writer.append("modeling.sec,current.rms,current.duration,temp_C.coil,temp_C.oil,temp_C.core,temp_C.body\n")
+        writer.append("total.modeling.sec,step.modeling.sec,step.current.rms,step.current.duration,temp_C.coil,temp_C.oil,temp_C.core,temp_C.body\n")
     }
-    override fun append(current: DT_current, temp: DT_temp, sec: Double) {
-        writer.append("${sec},${current.rms},${current.duration},${temp.coil},${temp.oil},${temp.core},${temp.body}\n")
+    override fun append(current: DT_current, temp: DT_temp, sec: Double, stepSec: Double) {
+        writer.append("${sec},${stepSec},${current.rms},${current.duration},${temp.coil},${temp.oil},${temp.core},${temp.body}\n")
     }
     fun close(){
         writer.close()
@@ -27,6 +27,8 @@ fun main(args: Array<String>) {
 
     val once = DT_current(3000.0, 50)
     dt_model.calc(once, writer)
+    val twice = DT_current(1000.0, 100)
+    dt_model.calc(twice, writer)
 
     val arr = arrayOf(  DT_current(20.0, 600),
                         DT_current(10.0, 600),
@@ -39,5 +41,6 @@ fun main(args: Array<String>) {
 
 
     dt_model.calc( arr, writer)
+
     writer.close()
 }

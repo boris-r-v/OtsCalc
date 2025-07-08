@@ -95,9 +95,14 @@ private fun updateHtParams(dtTemp: DT_temp, dtHt: DT_heat_transfer) {
  */
 class DT(var temp: DT_temp, val type: DT_type, var ht: DT_heat_transfer){
     internal var temp_C = DT_temp(temp.coil-273.0, temp.oil-273.0, temp.core-273.0, temp.body-273.0)
-    private var current_ = 0.0
+    private var inputCurrent = 0.0
     private val Q = mutableMapOf<String, Array<Double> >("oil" to Array(2, {0.0}), "coil" to Array(2, {0.0}), "core" to Array(2, {0.0}), "body" to Array(2, {0.0}))
     private val Csb = 5.6e-8
+    private var modelingSec: Double = 0.0
+
+    fun clearModelingSec(){
+        modelingSec = 0.0
+    }
 
     /**
      * Функция дифференциального уравнения теплового баланса обмотки
@@ -108,7 +113,7 @@ class DT(var temp: DT_temp, val type: DT_type, var ht: DT_heat_transfer){
      */
     private fun coilOde(coilTemp: Double, oilTemp: Double, coreTemp: Double, bodyTemp:Double, idx: Int = 0 ): Double
     {
-        val f1 = type.coil_R*(1+0.004*(coilTemp-293))*current_.pow(2)
+        val f1 = type.coil_R*(1+0.004*(coilTemp-293))*inputCurrent.pow(2)
         val f2 = ht.h_coil_oil*type.coil_S*(coilTemp-oilTemp)
         Q["coil"]!![idx] = f1 - f2
         //println("HEAT FOR $idx COIL ${Q["coil"]?.get(idx)}")
@@ -283,29 +288,36 @@ class DT(var temp: DT_temp, val type: DT_type, var ht: DT_heat_transfer){
         val error = CError(0.0,0.0,0.0,0.0)
         var iter = 0
 
-        current_ = tok.rms
+        inputCurrent = tok.rms
         while ( tok.duration > time )
         {
             if (step < 1E-10){
                 throw BdfStepIsTooSmall(message = "DtHeating integration step is too small step<$step>")
             }
+            var lastStep = false
+            if (time + step > tok.duration ){
+                //если это последний шаг, то подрезаем step чтобы попасть в окончание интервала моделирования, и помечаем его последним шагом чтобы появилась запись в лог
+                step = tok.duration - time
+                lastStep = true
+            }
             try {
                 calcNextStep(error, step)
                 time += step
-                //println("study time<$time>sec, step<$step>sec, temp_C $temp_C ")
+                modelingSec += step
             }
             catch (e: MaxBdfStepExcept)
             {
                 time -= step
+                modelingSec -= step
                 step = step / stepMult
                 allowUpStep = false
                 //println("WARNING: ${e.message}, new step: ${step}sec ")
                 continue
             }
-            if ( time >= prev_write_sec + writeDataEverySec )
+            if ( lastStep || time >= prev_write_sec + writeDataEverySec )
             {
                 prev_write_sec = time
-                writer.append( tok,temp_C, time)
+                writer.append( current = tok,temp = temp_C, sec = modelingSec, stepSec = time)
             }
             if ( step < 1.0 && !allowUpStep && ++restoredAllowUpStepTimes < restoredAllowUpStepMax ){
                 allowUpStep = true
